@@ -24,7 +24,7 @@ from src.utils.device import setup_device_from_cfg
 from src.utils.config_io import (
     save_merged_config,
     copy_config_snapshots,
-    save_run_metadata
+    save_run_metadata,
 )
 
 # -----------------------------------------------------------------------------
@@ -42,7 +42,6 @@ class AttrDict(dict):
         self[key] = value
 
 
-
 def _to_attrdict(obj):
     if isinstance(obj, dict):
         return AttrDict({k: _to_attrdict(v) for k, v in obj.items()})
@@ -51,11 +50,9 @@ def _to_attrdict(obj):
     return obj
 
 
-
 def _load_yaml(path: str | Path) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
-
 
 
 def _deep_update(base: dict, override: dict) -> dict:
@@ -68,13 +65,11 @@ def _deep_update(base: dict, override: dict) -> dict:
     return out
 
 
-
 def load_config(base_cfg_path: str | Path, stage_cfg_path: str | Path):
     base_cfg = _load_yaml(base_cfg_path)
     stage_cfg = _load_yaml(stage_cfg_path)
     merged = _deep_update(base_cfg, stage_cfg)
     return _to_attrdict(merged)
-
 
 
 def cfg_get(cfg: Any, *keys: str, default=None):
@@ -103,20 +98,8 @@ def set_seed(seed: int = 42):
     torch.cuda.manual_seed_all(seed)
 
 
-
-def get_device(cfg) -> torch.device:
-    device_str = cfg_get(cfg, "device", default=None)
-    if device_str is not None:
-        if device_str == "cuda" and torch.cuda.is_available():
-            return torch.device("cuda")
-        return torch.device(device_str)
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-
 def ensure_dir(path: str | Path):
     Path(path).mkdir(parents=True, exist_ok=True)
-
 
 
 def count_parameters(model: nn.Module) -> int:
@@ -130,6 +113,7 @@ def resolve_finetune_dataloaders(cfg):
     """
     Tries a few common project-specific builder names so the script can fit into
     slightly different repo layouts.
+
     Expected return:
         train_loader, val_loader (val_loader can be None)
     """
@@ -155,9 +139,10 @@ def resolve_finetune_dataloaders(cfg):
                     return out[0], out[1]
                 if len(out) >= 3:
                     return out[0], out[1]
-                raise ValueError(f"{module_name}.{fn_name} returned tuple of len {len(out)}, expected >=2")
+                raise ValueError(
+                    f"{module_name}.{fn_name} returned tuple of len {len(out)}, expected >=2"
+                )
 
-            # single train loader only
             return out, None
         except Exception as e:
             errors.append(f"{module_name}.{fn_name}: {repr(e)}")
@@ -187,56 +172,9 @@ class FinetuneMSDNet(nn.Module):
                 p.requires_grad = False
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        z = self.encoder(x)          # (B, D)
-        logit = self.head(z)         # (B, 1)
+        z = self.encoder(x)      # (B, D)
+        logit = self.head(z)     # (B, 1)
         return z, logit
-
-
-# -----------------------------------------------------------------------------
-# checkpoint loading
-# -----------------------------------------------------------------------------
-def _strip_prefix_if_present(state_dict: Dict[str, torch.Tensor], prefix: str) -> Dict[str, torch.Tensor]:
-    if not any(k.startswith(prefix) for k in state_dict.keys()):
-        return state_dict
-    return {k[len(prefix):]: v for k, v in state_dict.items() if k.startswith(prefix)}
-
-
-
-def load_pretrained_encoder_and_center(model: FinetuneMSDNet, ckpt_path: str | Path, device: torch.device):
-    ckpt = torch.load(ckpt_path, map_location="cpu")
-
-    if not isinstance(ckpt, dict):
-        raise ValueError(f"Checkpoint must be a dict, got {type(ckpt)}")
-
-    pretrain_mode = ckpt.get("mode", None)
-    center_c = ckpt.get("center_c", None)
-
-    state_dict = ckpt.get("model_state_dict", None)
-    if state_dict is None:
-        # allow encoder-only checkpoint as fallback, but then center_c must be stored elsewhere
-        state_dict = ckpt
-
-    # case 1: full CAE checkpoint -> keys like encoder.encoder.0.block.0.weight / encoder.proj.weight
-    encoder_state = _strip_prefix_if_present(state_dict, "encoder.")
-
-    # if stripping didn't change anything, it may already be an encoder-only state dict
-    missing, unexpected = model.encoder.load_state_dict(encoder_state, strict=False)
-
-    print(f"[INFO] loaded encoder from: {ckpt_path}")
-    print(f"[INFO] encoder load missing keys   : {len(missing)}")
-    print(f"[INFO] encoder load unexpected keys: {len(unexpected)}")
-
-    if pretrain_mode is not None:
-        print(f"[INFO] pretrain checkpoint mode: {pretrain_mode}")
-
-    if center_c is None:
-        raise ValueError(
-            "Checkpoint does not contain 'center_c'. "
-            "Use reconstruction pretrain checkpoint that saves center_c."
-        )
-
-    center_c = center_c.to(device).float()
-    return center_c, ckpt
 
 
 # -----------------------------------------------------------------------------
@@ -250,6 +188,7 @@ def parse_finetune_batch(batch) -> Tuple[torch.Tensor, torch.Tensor]:
       - {"x": x, "y": y}
       - {"input": x, "label": y}
       - {"waveform": x, "target": y}
+      - {"data": x, "labels": y}
     """
     if isinstance(batch, (tuple, list)):
         if len(batch) < 2:
@@ -262,10 +201,12 @@ def parse_finetune_batch(batch) -> Tuple[torch.Tensor, torch.Tensor]:
 
         x = None
         y = None
+
         for k in x_keys:
             if k in batch:
                 x = batch[k]
                 break
+
         for k in y_keys:
             if k in batch:
                 y = batch[k]
@@ -276,6 +217,126 @@ def parse_finetune_batch(batch) -> Tuple[torch.Tensor, torch.Tensor]:
         return x, y
 
     raise TypeError(f"Unsupported batch type: {type(batch)}")
+
+
+# -----------------------------------------------------------------------------
+# checkpoint loading / center computation
+# -----------------------------------------------------------------------------
+def _strip_prefix_if_present(
+    state_dict: Dict[str, torch.Tensor],
+    prefix: str,
+) -> Dict[str, torch.Tensor]:
+    if not any(k.startswith(prefix) for k in state_dict.keys()):
+        return state_dict
+    return {k[len(prefix):]: v for k, v in state_dict.items() if k.startswith(prefix)}
+
+
+@torch.no_grad()
+def compute_center_c_from_loader(
+    model: FinetuneMSDNet,
+    loader,
+    device: torch.device,
+    normal_label: int = 0,
+    max_batches: Optional[int] = None,
+    eps: float = 1e-6,
+) -> torch.Tensor:
+    """
+    Recompute center_c from normal/noise samples in loader.
+
+    Only samples with label == normal_label are used.
+    This is mainly for contrastive pretrain checkpoints where center_c is not saved.
+    """
+    model.eval()
+    z_list = []
+
+    for batch_idx, batch in enumerate(loader):
+        if max_batches is not None and batch_idx >= max_batches:
+            break
+
+        x, y = parse_finetune_batch(batch)
+        x = x.to(device, non_blocking=True).float()
+        y = y.to(device, non_blocking=True).long().view(-1)
+
+        normal_mask = (y == normal_label)
+        if not normal_mask.any():
+            continue
+
+        x_normal = x[normal_mask]
+        z, _ = model(x_normal)
+
+        if z.ndim != 2:
+            raise ValueError(f"Expected z shape (B, D), got {tuple(z.shape)}")
+
+        z_list.append(z.detach().cpu())
+
+    if len(z_list) == 0:
+        raise ValueError(
+            "No normal/noise samples were found in loader. "
+            "Cannot compute center_c for contrastive pretrained encoder."
+        )
+
+    z_all = torch.cat(z_list, dim=0)   # (N, D)
+    center_c = z_all.mean(dim=0)
+
+    center_c[(center_c.abs() < eps) & (center_c < 0)] = -eps
+    center_c[(center_c.abs() < eps) & (center_c >= 0)] = eps
+
+    return center_c.to(device).float()
+
+
+def load_pretrained_encoder_and_center(
+    model: FinetuneMSDNet,
+    ckpt_path: str | Path,
+    device: torch.device,
+    center_loader=None,
+    normal_label: int = 0,
+    max_center_batches: Optional[int] = None,
+):
+    ckpt = torch.load(ckpt_path, map_location="cpu")
+
+    if not isinstance(ckpt, dict):
+        raise ValueError(f"Checkpoint must be a dict, got {type(ckpt)}")
+
+    pretrain_mode = str(ckpt.get("mode", "unknown")).lower()
+    center_c = ckpt.get("center_c", None)
+
+    state_dict = ckpt.get("model_state_dict", None)
+    if state_dict is None:
+        # allow encoder-only checkpoint as fallback
+        state_dict = ckpt
+
+    encoder_state = _strip_prefix_if_present(state_dict, "encoder.")
+
+    missing, unexpected = model.encoder.load_state_dict(encoder_state, strict=False)
+
+    print(f"[INFO] loaded encoder from: {ckpt_path}")
+    print(f"[INFO] encoder load missing keys   : {len(missing)}")
+    print(f"[INFO] encoder load unexpected keys: {len(unexpected)}")
+    print(f"[INFO] pretrain checkpoint mode    : {pretrain_mode}")
+
+    # reconstruction pretrain: center already saved
+    if center_c is not None:
+        center_c = center_c.to(device).float()
+        print(f"[INFO] loaded center_c from checkpoint: {tuple(center_c.shape)}")
+        return center_c, ckpt
+
+    # contrast pretrain (or encoder-only ckpt): recompute center from loader
+    if center_loader is not None:
+        print("[INFO] center_c is None in checkpoint. Recomputing center_c from loader...")
+        center_c = compute_center_c_from_loader(
+            model=model,
+            loader=center_loader,
+            device=device,
+            normal_label=normal_label,
+            max_batches=max_center_batches,
+        )
+        print(f"[INFO] computed center_c from loader: {tuple(center_c.shape)}")
+        return center_c, ckpt
+
+    raise ValueError(
+        "Checkpoint does not contain 'center_c', and no center_loader was provided. "
+        "For contrastive pretrain, pass a loader containing normal/noise samples."
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -305,7 +366,6 @@ def compute_fcl_loss(
     return loss, {"num_labeled": num_labeled}
 
 
-
 def compute_deep_sad_anomaly_loss(
     z: torch.Tensor,
     labels: torch.Tensor,
@@ -333,7 +393,11 @@ def compute_deep_sad_anomaly_loss(
         normal_mask = normal_mask | (labels == unlabeled_label)
 
     loss_normal = dist[normal_mask].mean() if normal_mask.any() else dist.new_zeros(())
-    loss_anomaly = (1.0 / (dist[anomaly_mask] + eps)).mean() if anomaly_mask.any() else dist.new_zeros(())
+    loss_anomaly = (
+        (1.0 / (dist[anomaly_mask] + eps)).mean()
+        if anomaly_mask.any()
+        else dist.new_zeros(())
+    )
 
     loss = loss_normal + float(eta) * loss_anomaly
 
@@ -347,8 +411,12 @@ def compute_deep_sad_anomaly_loss(
     return loss, stats
 
 
-
-def binary_classification_stats(logits: torch.Tensor, labels: torch.Tensor, normal_label: int = 0, anomaly_label: int = 1):
+def binary_classification_stats(
+    logits: torch.Tensor,
+    labels: torch.Tensor,
+    normal_label: int = 0,
+    anomaly_label: int = 1,
+):
     logits = logits.view(-1)
     labels = labels.view(-1)
 
@@ -385,7 +453,7 @@ def binary_classification_stats(logits: torch.Tensor, labels: torch.Tensor, norm
 
 
 # -----------------------------------------------------------------------------
-# optimizer / scheduler
+# optimizer
 # -----------------------------------------------------------------------------
 def build_optimizer(cfg, model: nn.Module):
     lr = float(cfg_get(cfg, "train", "lr", default=1e-3))
@@ -400,7 +468,12 @@ def build_optimizer(cfg, model: nn.Module):
         return torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay)
     if name == "sgd":
         momentum = float(cfg_get(cfg, "train", "momentum", default=0.9))
-        return torch.optim.SGD(params, lr=lr, momentum=momentum, weight_decay=weight_decay)
+        return torch.optim.SGD(
+            params,
+            lr=lr,
+            momentum=momentum,
+            weight_decay=weight_decay,
+        )
 
     raise ValueError(f"Unsupported optimizer: {name}")
 
@@ -470,6 +543,7 @@ def train_one_epoch(
 
             scaler.step(optimizer)
             scaler.update()
+
         else:
             z, logits = model(x)
             loss_fcl, _ = compute_fcl_loss(
@@ -496,7 +570,12 @@ def train_one_epoch(
 
             optimizer.step()
 
-        cls_stats = binary_classification_stats(logits.detach(), y.detach(), normal_label=normal_label, anomaly_label=anomaly_label)
+        cls_stats = binary_classification_stats(
+            logits.detach(),
+            y.detach(),
+            normal_label=normal_label,
+            anomaly_label=anomaly_label,
+        )
 
         running_total += float(loss.item())
         running_fcl += float(loss_fcl.item())
@@ -564,7 +643,12 @@ def evaluate_one_epoch(
         )
         loss = loss_fcl + float(lambda_anomaly) * loss_anom
 
-        cls_stats = binary_classification_stats(logits, y, normal_label=normal_label, anomaly_label=anomaly_label)
+        cls_stats = binary_classification_stats(
+            logits,
+            y,
+            normal_label=normal_label,
+            anomaly_label=anomaly_label,
+        )
 
         running_total += float(loss.item())
         running_fcl += float(loss_fcl.item())
@@ -594,7 +678,7 @@ def save_checkpoint(
     optimizer: torch.optim.Optimizer,
     epoch: int,
     best_metric: float,
-    center_c: torch.Tensor,
+    center_c: Optional[torch.Tensor],
     cfg: Any,
 ):
     ckpt = {
@@ -602,7 +686,7 @@ def save_checkpoint(
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "best_metric": best_metric,
-        "center_c": center_c.detach().cpu(),
+        "center_c": None if center_c is None else center_c.detach().cpu(),
         "train_mode": "finetune",
         "pretrained_ckpt": cfg_get(cfg, "train", "pretrained_ckpt", default=None),
     }
@@ -613,7 +697,9 @@ def save_checkpoint(
 # main
 # -----------------------------------------------------------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Fine-tuning trainer for DAS microseismic detection")
+    parser = argparse.ArgumentParser(
+        description="Fine-tuning trainer for DAS microseismic detection"
+    )
     parser.add_argument("--base_cfg", type=str, default="config/base.yaml")
     parser.add_argument("--stage_cfg", type=str, default="config/train.yaml")
     args = parser.parse_args()
@@ -644,26 +730,23 @@ def main():
     ensure_dir(save_dir)
 
     save_merged_config(cfg, save_dir)
-
-    copy_config_snapshots(
-        args.base_cfg,
-        args.stage_cfg,
-        save_dir
-    )
-
+    copy_config_snapshots(args.base_cfg, args.stage_cfg, save_dir)
     save_run_metadata(
         {
-            "stage": "pretrain",
-            "device": str(device)
+            "stage": "finetune",
+            "device": str(device),
         },
-        save_dir
+        save_dir,
     )
-
 
     print(f"[INFO] finetune save_dir: {save_dir}")
 
-    pretrain_root = cfg_get(cfg, "paths", "run_root", default="./runs/pretrain")
-    pretrained_ckpt = Path(pretrain_root) / "pretrain"/ exp_name / "best.pt"
+    pretrained_ckpt = cfg_get(cfg, "train", "pretrained_ckpt", default=None)
+    if pretrained_ckpt is None:
+        run_root = cfg_get(cfg, "paths", "run_root", default="./runs")
+        pretrained_ckpt = Path(run_root) / "pretrain" / exp_name / "best.pt"
+    else:
+        pretrained_ckpt = Path(pretrained_ckpt)
 
     print(f"[INFO] pretrained_ckpt: {pretrained_ckpt}")
 
@@ -671,9 +754,8 @@ def main():
         raise FileNotFoundError(
             f"Pretrained checkpoint not found: {pretrained_ckpt}\n"
             f"Set cfg.train.pretrained_ckpt explicitly or place best.pt under "
-            f"{cfg_get(cfg, 'paths', 'pretrain_root', default='./runs/pretrain')}/{exp_name}/"
+            f"{pretrained_ckpt.parent}/"
         )
-
 
     train_loader, val_loader = resolve_finetune_dataloaders(cfg)
     print(f"[INFO] val loader: {'enabled' if val_loader is not None else 'disabled'}")
@@ -681,7 +763,22 @@ def main():
     model = FinetuneMSDNet(cfg).to(device)
     print(f"[INFO] model params (trainable): {count_parameters(model):,}")
 
-    center_c, pretrain_ckpt = load_pretrained_encoder_and_center(model, pretrained_ckpt, device)
+    normal_label = int(cfg_get(cfg, "train", "normal_label", default=0))
+    anomaly_label = int(cfg_get(cfg, "train", "anomaly_label", default=1))
+    unlabeled_label = int(cfg_get(cfg, "train", "unlabeled_label", default=2))
+    treat_unlabeled_as_normal = bool(
+        cfg_get(cfg, "train", "treat_unlabeled_as_normal", default=False)
+    )
+    max_center_batches = cfg_get(cfg, "train", "max_center_batches", default=None)
+
+    center_c, pretrain_ckpt_obj = load_pretrained_encoder_and_center(
+        model=model,
+        ckpt_path=pretrained_ckpt,
+        device=device,
+        center_loader=train_loader,
+        normal_label=normal_label,
+        max_center_batches=max_center_batches,
+    )
 
     optimizer = build_optimizer(cfg, model)
 
@@ -691,11 +788,6 @@ def main():
 
     lambda_anomaly = float(cfg_get(cfg, "train", "lambda_anomaly", default=0.1))
     eta = float(cfg_get(cfg, "train", "eta", default=1.0))
-
-    normal_label = int(cfg_get(cfg, "train", "normal_label", default=0))
-    anomaly_label = int(cfg_get(cfg, "train", "anomaly_label", default=1))
-    unlabeled_label = int(cfg_get(cfg, "train", "unlabeled_label", default=2))
-    treat_unlabeled_as_normal = bool(cfg_get(cfg, "train", "treat_unlabeled_as_normal", default=False))
 
     monitor = str(cfg_get(cfg, "train", "monitor", default="loss")).lower()
     if monitor not in {"loss", "f1", "acc"}:
@@ -753,9 +845,17 @@ def main():
         history_f1.append(ref["f1"])
 
         save_train_history_csv(history_loss, save_dir / "finetune_history_loss.csv")
-        save_loss_curve(history_loss, save_dir / "finetune_loss_curve.png", title="Fine-tuning Loss")
+        save_loss_curve(
+            history_loss,
+            save_dir / "finetune_loss_curve.png",
+            title="Fine-tuning Loss",
+        )
         save_train_history_csv(history_f1, save_dir / "finetune_history_f1.csv")
-        save_loss_curve(history_f1, save_dir / "finetune_f1_curve.png", title="Fine-tuning F1")
+        save_loss_curve(
+            history_f1,
+            save_dir / "finetune_f1_curve.png",
+            title="Fine-tuning F1",
+        )
 
         save_checkpoint(
             path=save_dir / "last.pt",

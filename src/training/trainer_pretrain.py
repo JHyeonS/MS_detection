@@ -23,6 +23,7 @@ from src.dataloader.pretrain_dataloader import (
     build_contrast_pretrain_dataloader,
 )
 from src.models.pretrain_reconstruction import CAE
+from src.models.pretrain_contrastive import ContrastivePretrainModel
 
 from src.utils.visualize import save_loss_curve, save_train_history_csv
 
@@ -457,43 +458,133 @@ def main():
 
     if mode == "reconstruction":
         train_loader = build_reconst_pretrain_dataloader(cfg)
-    else:
-        train_loader = build_contrast_pretrain_dataloader(cfg)
+    
+        model = CAE(cfg).to(device)
+        print(f"[INFO] model params: {count_parameters(model):,}")
 
+        optimizer = build_optimizer(cfg, model)
 
-    model = CAE(cfg).to(device)
-    print(f"[INFO] model params: {count_parameters(model):,}")
+        epochs = int(cfg_get(cfg, "pretrain", "epochs", default=100))
+        use_amp = bool(cfg_get(cfg, "pretrain", "use_amp", default=True)) and (device.type == "cuda")
+        grad_clip = cfg_get(cfg, "pretrain", "grad_clip", default=None)
+        recon_loss_name = str(cfg_get(cfg, "pretrain", "recon_loss", default="mse"))
+        temperature = float(cfg_get(cfg, "pretrain", "temperature", default=0.1))
 
-    optimizer = build_optimizer(cfg, model)
+        scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
-    epochs = int(cfg_get(cfg, "pretrain", "epochs", default=100))
-    use_amp = bool(cfg_get(cfg, "pretrain", "use_amp", default=True)) and (device.type == "cuda")
-    grad_clip = cfg_get(cfg, "pretrain", "grad_clip", default=None)
-    recon_loss_name = str(cfg_get(cfg, "pretrain", "recon_loss", default="mse"))
-    temperature = float(cfg_get(cfg, "pretrain", "temperature", default=0.1))
+        best_loss = math.inf
+        best_epoch = -1
+        start_time = time.time()
+        train_loss_history =[]
 
-    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+        for epoch in range(1, epochs + 1):
+            epoch_start = time.time()
 
-    best_loss = math.inf
-    best_epoch = -1
-    start_time = time.time()
-    train_loss_history =[]
+            if mode == "reconstruction":
+                metrics = train_one_epoch_reconstruction(
+                    model=model,
+                    loader=train_loader,
+                    optimizer=optimizer,
+                    device=device,
+                    scaler=scaler,
+                    use_amp=use_amp,
+                    recon_loss_name=recon_loss_name,
+                    grad_clip=grad_clip,
+                )
+            else:
+                metrics = train_one_epoch_contrast(
+                    model=model,
+                    loader=train_loader,
+                    optimizer=optimizer,
+                    device=device,
+                    scaler=scaler,
+                    use_amp=use_amp,
+                    temperature=temperature,
+                    grad_clip=grad_clip,
+                )
 
-    for epoch in range(1, epochs + 1):
-        epoch_start = time.time()
+            center_c = compute_center_c(metrics["z_buffer"])
 
-        if mode == "reconstruction":
-            metrics = train_one_epoch_reconstruction(
-                model=model,
-                loader=train_loader,
-                optimizer=optimizer,
-                device=device,
-                scaler=scaler,
-                use_amp=use_amp,
-                recon_loss_name=recon_loss_name,
-                grad_clip=grad_clip,
+            train_loss = metrics["loss"]
+            train_loss_history.append(train_loss)
+
+            save_train_history_csv(
+                losses=train_loss_history,
+                save_path=save_dir / "train_history.csv",
             )
-        else:
+
+            save_loss_curve(
+                losses=train_loss_history,
+                save_path=save_dir / "train_loss_curve.png",
+                title=f"Pretrain Loss ({mode})",
+            )
+
+            # save last
+            save_checkpoint(
+                path=save_dir / "last.pt",
+                model=model,
+                optimizer=optimizer,
+                epoch=epoch,
+                best_loss=best_loss,
+                cfg=cfg,
+                center_c=center_c,
+            )
+            save_encoder_only(save_dir / "last_encoder.pt", model)
+
+            # save best
+            if train_loss < best_loss:
+                best_loss = train_loss
+                best_epoch = epoch
+
+                save_checkpoint(
+                    path=save_dir / "best.pt",
+                    model=model,
+                    optimizer=optimizer,
+                    epoch=epoch,
+                    best_loss=best_loss,
+                    cfg=cfg,
+                    center_c=center_c,
+                )
+                save_encoder_only(save_dir / "best_encoder.pt", model)
+
+            elapsed = time.time() - epoch_start
+            print(
+                f"[Epoch {epoch:03d}/{epochs:03d}] "
+                f"loss={train_loss:.6f} | "
+                f"best={best_loss:.6f} (epoch {best_epoch}) | "
+                f"time={elapsed:.1f}s"
+            )
+
+        total_elapsed = time.time() - start_time
+        print(f"[DONE] training finished in {total_elapsed / 60.0:.2f} min")
+        print(f"[DONE] best loss = {best_loss:.6f} at epoch {best_epoch}")
+
+    elif mode == "contrast":
+        train_loader = build_contrast_pretrain_dataloader(cfg)
+        model = ContrastivePretrainModel(cfg).to(device)
+
+        print(f"[INFO] model params: {count_parameters(model):,}")
+
+        optimizer = build_optimizer(cfg, model)
+
+        epochs = int(cfg_get(cfg, "pretrain", "epochs", default=100))
+        use_amp = bool(cfg_get(cfg, "pretrain", "use_amp", default=True)) and (device.type == "cuda")
+        grad_clip = cfg_get(cfg, "pretrain", "grad_clip", default=None)
+        temperature = float(cfg_get(cfg, "pretrain", "temperature", default=0.1))
+
+        scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+
+        best_loss = math.inf
+        best_epoch = -1
+        start_time = time.time()
+        train_loss_history = []
+
+
+        center_c = None
+
+        for epoch in range(1, epochs + 1):
+            epoch_start = time.time()
+
             metrics = train_one_epoch_contrast(
                 model=model,
                 loader=train_loader,
@@ -505,63 +596,55 @@ def main():
                 grad_clip=grad_clip,
             )
 
-        center_c = None
-        if mode == "reconstruction":
-            center_c = compute_center_c(metrics["z_buffer"])
+            train_loss = metrics["loss"]
+            train_loss_history.append(train_loss)
 
-        train_loss = metrics["loss"]
-        train_loss_history.append(train_loss)
+            save_train_history_csv(
+                losses=train_loss_history,
+                save_path=save_dir / "train_history.csv",
+            )
 
-        save_train_history_csv(
-            losses=train_loss_history,
-            save_path=save_dir / "train_history.csv",
-        )
-
-        save_loss_curve(
-            losses=train_loss_history,
-            save_path=save_dir / "train_loss_curve.png",
-            title=f"Pretrain Loss ({mode})",
-        )
-
-        # save last
-        save_checkpoint(
-            path=save_dir / "last.pt",
-            model=model,
-            optimizer=optimizer,
-            epoch=epoch,
-            best_loss=best_loss,
-            cfg=cfg,
-            center_c=center_c,
-        )
-        save_encoder_only(save_dir / "last_encoder.pt", model)
-
-        # save best
-        if train_loss < best_loss:
-            best_loss = train_loss
-            best_epoch = epoch
+            save_loss_curve(
+                losses=train_loss_history,
+                save_path=save_dir / "train_loss_curve.png",
+                title=f"Pretrain Loss ({mode})",
+            )
 
             save_checkpoint(
-                path=save_dir / "best.pt",
+                path=save_dir / "last.pt",
                 model=model,
                 optimizer=optimizer,
                 epoch=epoch,
                 best_loss=best_loss,
                 cfg=cfg,
-                center_c=center_c,
+                center_c=center_c,   # 항상 key 유지
             )
-            save_encoder_only(save_dir / "best_encoder.pt", model)
+            save_encoder_only(save_dir / "last_encoder.pt", model)
 
-        elapsed = time.time() - epoch_start
-        print(
-            f"[Epoch {epoch:03d}/{epochs:03d}] "
-            f"loss={train_loss:.6f} | "
-            f"best={best_loss:.6f} (epoch {best_epoch}) | "
-            f"time={elapsed:.1f}s"
-        )
+            if train_loss < best_loss:
+                best_loss = train_loss
+                best_epoch = epoch
 
-    total_elapsed = time.time() - start_time
-    print(f"[DONE] training finished in {total_elapsed / 60.0:.2f} min")
-    print(f"[DONE] best loss = {best_loss:.6f} at epoch {best_epoch}")
+                save_checkpoint(
+                    path=save_dir / "best.pt",
+                    model=model,
+                    optimizer=optimizer,
+                    epoch=epoch,
+                    best_loss=best_loss,
+                    cfg=cfg,
+                    center_c=center_c,   # contrast에서는 None 저장
+                )
+                save_encoder_only(save_dir / "best_encoder.pt", model)
+
+            elapsed = time.time() - epoch_start
+            print(
+                f"[Epoch {epoch:03d}/{epochs:03d}] "
+                f"loss={train_loss:.6f} | "
+                f"best={best_loss:.6f} (epoch {best_epoch}) | "
+                f"time={elapsed:.1f}s"
+            )
+        else: 
+            raise ValueError("Wrong Pretrain Mode, check yaml")
 
 
 if __name__ == "__main__":
