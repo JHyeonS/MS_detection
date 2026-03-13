@@ -426,19 +426,20 @@ def main():
 
     exp_name = cfg_get(cfg, "data", "experiment", default="default")
 
-    save_dir = Path(
-        cfg_get(
-            cfg,
-            "train",
-            "save_dir",
-            default=str(Path(cfg_get(cfg, "paths", "finetune_root", default="./runs/finetune")) / exp_name),
-        )
-    )
-    ensure_dir(save_dir)
+    run_root = Path(cfg_get(cfg, "paths", "run_root", default="./runs"))
+    pretrain_root = run_root / "pretrain"
+    finetune_root = run_root / "finetune"
 
-    pretrained_ckpt = cfg_get(cfg, "train", "pretrained_ckpt", default=None)
-    if pretrained_ckpt is None:
-        pretrained_ckpt = Path(cfg_get(cfg, "paths", "pretrain_root", default="./runs/pretrain")) / exp_name / "best.pt"
+    # pretrain save_dir resolution
+    # priority 1) cfg.pretrain.save_dir
+    # priority 2) run_root / "pretrain" / exp_name
+    save_dir = cfg_get(cfg, "pretrain", "save_dir", default=None)
+    if save_dir is None:
+        save_dir = pretrain_root / exp_name
+    else:
+        save_dir = Path(save_dir)
+
+    ensure_dir(save_dir)
 
     print(f"[INFO] pretrain mode: {mode}")
     print(f"[INFO] save_dir: {save_dir}")
