@@ -1,5 +1,7 @@
 seed: 42
-device: "cuda"
+device: 
+  type: "cuda"
+  ids : [3]
 
 paths:
   run_root: "./runs/0313"

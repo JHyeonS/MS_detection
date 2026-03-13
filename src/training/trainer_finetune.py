@@ -19,7 +19,7 @@ import yaml
 
 from src.models.cnn_encoder import cnn_encoder
 from src.utils.visualize import save_loss_curve, save_train_history_csv
-
+from src.utils.device import setup_device_from_cfg
 
 # -----------------------------------------------------------------------------
 # config utils
@@ -617,35 +617,29 @@ def main():
     seed = int(cfg_get(cfg, "seed", default=42))
     set_seed(seed)
 
-    device = get_device(cfg)
-    print(f"[INFO] device: {device}")
+    device = setup_device_from_cfg(cfg)
 
     exp_name = cfg_get(cfg, "data", "experiment", default="default")
 
-    # save_dir resolution:
-    # priority 1) cfg.train.save_dir
-    # priority 2) cfg.paths.finetune_root / exp_name
-    # fallback   ) ./runs/finetune / exp_name
     save_dir = cfg_get(cfg, "train", "save_dir", default=None)
     if save_dir is None:
-        finetune_root = cfg_get(cfg, "paths", "finetune_root", default="./runs/finetune")
-        save_dir = Path(finetune_root) / exp_name
+        finetune_root = cfg_get(cfg, "paths", "finetune_root", default=None)
+
+        if finetune_root is None:
+            run_root = cfg_get(cfg, "paths", "run_root", default="./runs")
+            finetune_root = Path(run_root) / "finetune"
+        else:
+            finetune_root = Path(finetune_root)
+
+        save_dir = finetune_root / exp_name
     else:
         save_dir = Path(save_dir)
 
     ensure_dir(save_dir)
     print(f"[INFO] finetune save_dir: {save_dir}")
 
-    # pretrained_ckpt resolution:
-    # priority 1) cfg.train.pretrained_ckpt
-    # priority 2) cfg.paths.pretrain_root / exp_name / best.pt
-    # fallback   ) ./runs/pretrain / exp_name / best.pt
-    pretrained_ckpt = cfg_get(cfg, "train", "pretrained_ckpt", default=None)
-    if pretrained_ckpt is None:
-        pretrain_root = cfg_get(cfg, "paths", "pretrain_root", default="./runs/pretrain")
-        pretrained_ckpt = Path(pretrain_root) / exp_name / "best.pt"
-    else:
-        pretrained_ckpt = Path(pretrained_ckpt)
+    pretrain_root = cfg_get(cfg, "paths", "run_root", default="./runs/pretrain")
+    pretrained_ckpt = Path(pretrain_root) / "pretrain"/ exp_name / "best.pt"
 
     print(f"[INFO] pretrained_ckpt: {pretrained_ckpt}")
 
@@ -655,6 +649,7 @@ def main():
             f"Set cfg.train.pretrained_ckpt explicitly or place best.pt under "
             f"{cfg_get(cfg, 'paths', 'pretrain_root', default='./runs/pretrain')}/{exp_name}/"
         )
+
 
     train_loader, val_loader = resolve_finetune_dataloaders(cfg)
     print(f"[INFO] val loader: {'enabled' if val_loader is not None else 'disabled'}")

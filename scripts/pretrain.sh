@@ -2,7 +2,6 @@
 set -e
 
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=1
 
 export MPLBACKEND=Agg
 

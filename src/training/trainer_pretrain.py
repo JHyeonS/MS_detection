@@ -16,6 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import yaml
+import os
 
 from src.dataloader.pretrain_dataloader import (
     build_reconst_pretrain_dataloader,
@@ -24,6 +25,8 @@ from src.dataloader.pretrain_dataloader import (
 from src.models.pretrain_reconstruction import CAE
 
 from src.utils.visualize import save_loss_curve, save_train_history_csv
+
+from src.utils.device import setup_device_from_cfg
 
 # -----------------------------------------------------------------------------
 # config utils
@@ -115,15 +118,6 @@ def set_seed(seed: int = 42):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def get_device(cfg) -> torch.device:
-    device_str = cfg_get(cfg, "device", default=None)
-    if device_str is not None:
-        if device_str == "cuda" and torch.cuda.is_available():
-            return torch.device("cuda")
-        return torch.device(device_str)
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def ensure_dir(path: str | Path):
@@ -414,11 +408,7 @@ def main():
 
     cfg = load_config(args.base_cfg, args.stage_cfg)
 
-    seed = int(cfg_get(cfg, "seed", default=42))
-    set_seed(seed)
-
-    device = get_device(cfg)
-    print(f"[INFO] device: {device}")
+    device = setup_device_from_cfg(cfg)
 
     mode = str(cfg.pretrain.mode).lower()
     if mode not in ["reconstruction", "contrast"]:
@@ -428,12 +418,10 @@ def main():
 
     run_root = Path(cfg_get(cfg, "paths", "run_root", default="./runs"))
     pretrain_root = run_root / "pretrain"
-    finetune_root = run_root / "finetune"
 
-    # pretrain save_dir resolution
-    # priority 1) cfg.pretrain.save_dir
-    # priority 2) run_root / "pretrain" / exp_name
-    save_dir = cfg_get(cfg, "pretrain", "save_dir", default=None)
+    exp_name = cfg_get(cfg, "data", "experiment", default="default")
+
+    save_dir = pretrain_root / exp_name
     if save_dir is None:
         save_dir = pretrain_root / exp_name
     else:
