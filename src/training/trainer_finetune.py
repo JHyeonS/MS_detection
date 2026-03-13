@@ -147,7 +147,9 @@ def resolve_finetune_dataloaders(cfg):
             if isinstance(out, tuple):
                 if len(out) == 2:
                     return out[0], out[1]
-                raise ValueError(f"{module_name}.{fn_name} returned tuple of len {len(out)}, expected 2")
+                if len(out) >= 3:
+                    return out[0], out[1]
+                raise ValueError(f"{module_name}.{fn_name} returned tuple of len {len(out)}, expected >=2")
 
             # single train loader only
             return out, None
@@ -618,13 +620,41 @@ def main():
     device = get_device(cfg)
     print(f"[INFO] device: {device}")
 
-    save_dir = Path(cfg_get(cfg, "train", "save_dir", default="./runs/finetune"))
+    exp_name = cfg_get(cfg, "data", "experiment", default="default")
+
+    # save_dir resolution:
+    # priority 1) cfg.train.save_dir
+    # priority 2) cfg.paths.finetune_root / exp_name
+    # fallback   ) ./runs/finetune / exp_name
+    save_dir = cfg_get(cfg, "train", "save_dir", default=None)
+    if save_dir is None:
+        finetune_root = cfg_get(cfg, "paths", "finetune_root", default="./runs/finetune")
+        save_dir = Path(finetune_root) / exp_name
+    else:
+        save_dir = Path(save_dir)
+
     ensure_dir(save_dir)
     print(f"[INFO] finetune save_dir: {save_dir}")
 
+    # pretrained_ckpt resolution:
+    # priority 1) cfg.train.pretrained_ckpt
+    # priority 2) cfg.paths.pretrain_root / exp_name / best.pt
+    # fallback   ) ./runs/pretrain / exp_name / best.pt
     pretrained_ckpt = cfg_get(cfg, "train", "pretrained_ckpt", default=None)
     if pretrained_ckpt is None:
-        raise ValueError("cfg.train.pretrained_ckpt must be set for fine-tuning.")
+        pretrain_root = cfg_get(cfg, "paths", "pretrain_root", default="./runs/pretrain")
+        pretrained_ckpt = Path(pretrain_root) / exp_name / "best.pt"
+    else:
+        pretrained_ckpt = Path(pretrained_ckpt)
+
+    print(f"[INFO] pretrained_ckpt: {pretrained_ckpt}")
+
+    if not pretrained_ckpt.exists():
+        raise FileNotFoundError(
+            f"Pretrained checkpoint not found: {pretrained_ckpt}\n"
+            f"Set cfg.train.pretrained_ckpt explicitly or place best.pt under "
+            f"{cfg_get(cfg, 'paths', 'pretrain_root', default='./runs/pretrain')}/{exp_name}/"
+        )
 
     train_loader, val_loader = resolve_finetune_dataloaders(cfg)
     print(f"[INFO] val loader: {'enabled' if val_loader is not None else 'disabled'}")

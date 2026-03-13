@@ -36,7 +36,12 @@ def _resolve_csv_path(cfg, split: str) -> Path:
     direct_key = f"data.{split}_csv"
     direct_path = _get_attr(cfg, direct_key, None)
     if direct_path is not None:
-        return Path(direct_path)
+        p = Path(direct_path)
+        if not p.is_absolute():
+            split_dir = _get_attr(cfg, "data.split_dir", None)
+            if split_dir is not None:
+                p = Path(split_dir) / p
+        return p
 
     split_dir = _get_attr(cfg, "data.split_dir", None)
     if split_dir is not None:

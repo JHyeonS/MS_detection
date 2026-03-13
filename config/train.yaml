@@ -1,6 +1,6 @@
 data:
-  train_csv: "./data/0312/metadata/experiments/stage1_pohang_only/train.csv"
-  val_csv: "./data/0312/metadata/experiments/stage1_pohang_only/val.csv"
+  train_csv: "train.csv"
+  val_csv: "val.csv"
 
   normalize: "robust"
   add_channel_dim: true
@@ -22,3 +22,14 @@ train:
   label_map:
     0: 0
     1: 1
+
+  epochs: 100
+  lr: 1e-4
+  wd: 1e-2
+  optimizer: "adamw"
+  use_amp: true
+  grad_clip: 1.0
+
+  lambda_anomaly: 0.1
+  eta: 1.0
+  monitor: "loss"
