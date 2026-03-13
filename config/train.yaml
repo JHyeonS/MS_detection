@@ -12,6 +12,7 @@ train:
   num_workers: 4
   pin_memory: true
   drop_last: true
+  freeze_encoder: false
 
   seed: 42
   labeled_fraction: 1.0

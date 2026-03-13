@@ -1,0 +1,10 @@
+analyze:
+  # optional
+  # pred_csv: "./runs/0313/test/stage1_utah_only/predictions.csv"
+  # metrics_json: "./runs/0313/test/stage1_utah_only/metrics.json"
+  # embedding_path: "./runs/0313/test/stage1_utah_only/embeddings.npz"
+  # out_dir: "./runs/0313/test/stage1_utah_only/analysis"
+
+  save_tsne: false
+  tsne_max_points: 3000
+  threshold_points: 201
