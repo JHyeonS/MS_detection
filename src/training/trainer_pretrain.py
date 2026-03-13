@@ -424,8 +424,21 @@ def main():
     if mode not in ["reconstruction", "contrast"]:
         raise ValueError(f"Unsupported pretrain.mode: {cfg.pretrain.mode}")
 
-    save_dir = Path(cfg_get(cfg, "pretrain", "save_dir", default="./runs/pretrain"))
+    exp_name = cfg_get(cfg, "data", "experiment", default="default")
+
+    save_dir = Path(
+        cfg_get(
+            cfg,
+            "train",
+            "save_dir",
+            default=str(Path(cfg_get(cfg, "paths", "finetune_root", default="./runs/finetune")) / exp_name),
+        )
+    )
     ensure_dir(save_dir)
+
+    pretrained_ckpt = cfg_get(cfg, "train", "pretrained_ckpt", default=None)
+    if pretrained_ckpt is None:
+        pretrained_ckpt = Path(cfg_get(cfg, "paths", "pretrain_root", default="./runs/pretrain")) / exp_name / "best.pt"
 
     print(f"[INFO] pretrain mode: {mode}")
     print(f"[INFO] save_dir: {save_dir}")

@@ -1,7 +1,7 @@
 stage: "test"
 
 data:
-  test_csv: "test.csv"
+  test_csv: "./data/metadata/test.csv"
 
 test:
   exp_name: "pohang_cls_v1"

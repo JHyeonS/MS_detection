@@ -9,6 +9,7 @@ from typing import Any, Callable, Optional, List, Tuple
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from pathlib import Path
 
 from src.dataset.pretrain_dataset import PretrainNPYDataset
 from src.dataset.transforms import (
@@ -43,7 +44,15 @@ def _resolve_pretrain_csv(cfg: Any) -> str:
         csv_path = _cfg_get(cfg, "pretrain", "pretrain_csv", default=None)
     if csv_path is None:
         raise ValueError("pretrain_csv not found in cfg.data.pretrain_csv or cfg.pretrain.pretrain_csv")
-    return csv_path
+
+    csv_path = Path(csv_path)
+
+    if not csv_path.is_absolute():
+        split_dir = _cfg_get(cfg, "data", "split_dir", default=None)
+        if split_dir is not None:
+            csv_path = Path(split_dir) / csv_path
+
+    return str(csv_path)
 
 
 def _resolve_allowed_labels(cfg: Any):

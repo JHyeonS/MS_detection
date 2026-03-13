@@ -9,6 +9,7 @@ paths:
 
 data:
   experiment: "stage1_pohang_only"
+  split_dir: "./data/0312/metadata/experiments/stage1_pohang_only"
   num_workers: 4
   pin_memory: true
   normalize: "robust"

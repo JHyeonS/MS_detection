@@ -4,173 +4,260 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Tuple
 
-import numpy as np
-import pandas as pd
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, WeightedRandomSampler
+
+from src.dataset.finetune_dataset import FineTuneNPYDataset
 
 
-def _find_npy_column(df: pd.DataFrame) -> str:
-    for col in ["npy_path", "path"]:
-        if col in df.columns:
-            return col
-    raise ValueError("CSV must contain either 'npy_path' or 'path' column.")
-
-
-def _load_npy_2d(npy_path: str | Path) -> np.ndarray:
-    x = np.load(npy_path)
-
-    if x.ndim == 3:
-        if x.shape[0] == 1:
-            x = x[0]
-        else:
-            raise ValueError(f"Expected (1,C,T) or (C,T), got shape={x.shape} for {npy_path}")
-    elif x.ndim != 2:
-        raise ValueError(f"Expected 2D or 3D array, got shape={x.shape} for {npy_path}")
-
-    return x.astype(np.float32)
-
-
-def _zscore_global(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
-    mean = x.mean()
-    std = x.std()
-    return (x - mean) / (std + eps)
-
-
-def _robust_norm_global(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
-    med = np.median(x)
-    mad = np.median(np.abs(x - med))
-    return (x - med) / (1.4826 * mad + eps)
-
-
-class FineTuneNPYDataset(Dataset):
+def _get_attr(cfg, path: str, default=None):
     """
-    Dataset for supervised fine-tuning / validation / test.
-
-    Reads:
-        train.csv / val.csv / test.csv
-
-    Supports:
-        - labeled_fraction for label-efficiency experiments
-        - optional class-balanced subsampling
+    Safe nested attribute getter.
+    Example:
+        _get_attr(cfg, "train.batch_size", 16)
     """
+    cur = cfg
+    for key in path.split("."):
+        if not hasattr(cur, key):
+            return default
+        cur = getattr(cur, key)
+    return cur
 
-    def __init__(
-        self,
-        csv_path: str | Path,
-        add_channel_dim: bool = True,
-        normalize: Optional[str] = "robust",
-        transform: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        labeled_fraction: float = 1.0,
-        seed: int = 42,
-        balance_fraction_by_class: bool = True,
-        min_samples_per_class: int = 1,
-        label_map: Optional[dict[int, int]] = None,
-        return_meta: bool = False,
-    ) -> None:
-        super().__init__()
 
-        self.csv_path = Path(csv_path)
-        self.add_channel_dim = add_channel_dim
-        self.normalize = normalize
-        self.transform = transform
-        self.labeled_fraction = labeled_fraction
-        self.seed = seed
-        self.balance_fraction_by_class = balance_fraction_by_class
-        self.min_samples_per_class = min_samples_per_class
-        self.label_map = label_map or {0: 0, 1: 1}
-        self.return_meta = return_meta
+def _resolve_csv_path(cfg, split: str) -> Path:
+    """
+    Resolve CSV path for split in the following priority:
+      1) cfg.data.<split>_csv
+      2) cfg.data.split_dir / f"{split}.csv"
+      3) cfg.data.metadata_dir / f"{split}.csv"
+    """
+    direct_key = f"data.{split}_csv"
+    direct_path = _get_attr(cfg, direct_key, None)
+    if direct_path is not None:
+        return Path(direct_path)
 
-        self.df = pd.read_csv(self.csv_path)
-        self.npy_col = _find_npy_column(self.df)
+    split_dir = _get_attr(cfg, "data.split_dir", None)
+    if split_dir is not None:
+        p = Path(split_dir) / f"{split}.csv"
+        if p.exists():
+            return p
 
-        if "label" not in self.df.columns:
-            raise ValueError(f"{self.csv_path} must contain 'label' column for fine-tuning.")
+    metadata_dir = _get_attr(cfg, "data.metadata_dir", None)
+    if metadata_dir is not None:
+        p = Path(metadata_dir) / f"{split}.csv"
+        if p.exists():
+            return p
 
-        self.df = self.df[self.df["label"].isin([0, 1])].reset_index(drop=True)
+    raise FileNotFoundError(
+        f"Could not resolve {split}.csv. "
+        f"Set cfg.data.{split}_csv or cfg.data.split_dir / cfg.data.metadata_dir."
+    )
 
-        if len(self.df) == 0:
-            raise ValueError(f"No labeled rows (0/1) found in {self.csv_path}")
 
-        self.df = self._apply_label_fraction(self.df)
-        self.df = self.df.sample(frac=1.0, random_state=self.seed).reset_index(drop=True)
+def _build_dataset(cfg, split: str) -> FineTuneNPYDataset:
+    """
+    Build FineTuneNPYDataset for a given split.
+    """
+    csv_path = _resolve_csv_path(cfg, split)
 
-        if len(self.df) == 0:
-            raise ValueError("Dataset became empty after applying labeled_fraction.")
+    normalize = _get_attr(cfg, "data.normalize", "robust")
+    add_channel_dim = _get_attr(cfg, "data.add_channel_dim", True)
+    return_meta = _get_attr(cfg, "data.return_meta", False)
 
-    def _apply_label_fraction(self, df: pd.DataFrame) -> pd.DataFrame:
-        frac = float(self.labeled_fraction)
-        if not (0 < frac <= 1.0):
-            raise ValueError(f"labeled_fraction must be in (0,1], got {frac}")
+    label_map = _get_attr(cfg, "train.label_map", None)
+    if label_map is None:
+        label_map = {0: 0, 1: 1}
 
-        if frac >= 1.0:
-            return df.reset_index(drop=True)
+    if split == "train":
+        labeled_fraction = float(_get_attr(cfg, "train.labeled_fraction", 1.0))
+        balance_fraction_by_class = bool(
+            _get_attr(cfg, "train.balance_fraction_by_class", True)
+        )
+        min_samples_per_class = int(
+            _get_attr(cfg, "train.min_samples_per_class", 1)
+        )
+    else:
+        labeled_fraction = 1.0
+        balance_fraction_by_class = False
+        min_samples_per_class = 1
 
-        if self.balance_fraction_by_class:
-            parts = []
-            for cls in [0, 1]:
-                sub = df[df["label"] == cls].copy()
-                if len(sub) == 0:
-                    raise ValueError(f"Class {cls} has zero samples in {self.csv_path}")
+    seed = int(_get_attr(cfg, "train.seed", 42))
 
-                n_keep = max(self.min_samples_per_class, int(round(len(sub) * frac)))
-                n_keep = min(n_keep, len(sub))
-                sub = sub.sample(n=n_keep, random_state=self.seed)
-                parts.append(sub)
+    ds = FineTuneNPYDataset(
+        csv_path=csv_path,
+        add_channel_dim=add_channel_dim,
+        normalize=normalize,
+        transform=None,
+        labeled_fraction=labeled_fraction,
+        seed=seed,
+        balance_fraction_by_class=balance_fraction_by_class,
+        min_samples_per_class=min_samples_per_class,
+        label_map=label_map,
+        return_meta=return_meta,
+    )
+    return ds
 
-            out = pd.concat(parts, axis=0).reset_index(drop=True)
-            return out
 
-        n_keep = max(1, int(round(len(df) * frac)))
-        n_keep = min(n_keep, len(df))
-        return df.sample(n=n_keep, random_state=self.seed).reset_index(drop=True)
+def _build_weighted_sampler(dataset: FineTuneNPYDataset) -> WeightedRandomSampler:
+    """
+    Optional weighted sampler for class imbalance.
+    Assumes labels are 0/1 after dataset filtering.
+    """
+    labels = dataset.get_labels()
+    class_counts = {}
+    for y in labels:
+        class_counts[int(y)] = class_counts.get(int(y), 0) + 1
 
-    def __len__(self) -> int:
-        return len(self.df)
+    weights = [1.0 / class_counts[int(y)] for y in labels]
+    weights = torch.tensor(weights, dtype=torch.double)
 
-    def _normalize(self, x: np.ndarray) -> np.ndarray:
-        if self.normalize is None or self.normalize == "none":
-            return x
-        if self.normalize == "zscore":
-            return _zscore_global(x)
-        if self.normalize == "robust":
-            return _robust_norm_global(x)
-        raise ValueError(f"Unknown normalize mode: {self.normalize}")
+    sampler = WeightedRandomSampler(
+        weights=weights,
+        num_samples=len(weights),
+        replacement=True,
+    )
+    return sampler
 
-    def get_labels(self) -> np.ndarray:
-        return self.df["label"].map(self.label_map).to_numpy(dtype=np.int64)
 
-    def class_counts(self) -> Dict[int, int]:
-        counts = self.df["label"].value_counts().to_dict()
-        return {int(k): int(v) for k, v in counts.items()}
+def _build_loader(
+    dataset: FineTuneNPYDataset,
+    batch_size: int,
+    shuffle: bool,
+    num_workers: int,
+    pin_memory: bool,
+    drop_last: bool,
+    weighted_sampling: bool = False,
+) -> DataLoader:
+    """
+    Build a torch DataLoader.
+    """
+    sampler = None
+    if weighted_sampling:
+        sampler = _build_weighted_sampler(dataset)
+        shuffle = False
 
-    def __getitem__(self, idx: int):
-        row = self.df.iloc[idx]
-        npy_path = row[self.npy_col]
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle if sampler is None else False,
+        sampler=sampler,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=drop_last,
+        persistent_workers=(num_workers > 0),
+    )
+    return loader
 
-        x = _load_npy_2d(npy_path)
-        x = self._normalize(x)
 
-        if self.transform is not None:
-            x = self.transform(x)
+def build_finetune_datasets(
+    cfg,
+    with_test: bool = True,
+) -> Tuple[FineTuneNPYDataset, Optional[FineTuneNPYDataset], Optional[FineTuneNPYDataset]]:
+    """
+    Returns:
+        train_dataset, val_dataset, test_dataset
+    """
+    train_dataset = _build_dataset(cfg, "train")
 
-        if self.add_channel_dim:
-            x = np.expand_dims(x, axis=0)  # (1, C, T)
+    val_dataset = None
+    try:
+        val_dataset = _build_dataset(cfg, "val")
+    except FileNotFoundError:
+        pass
 
-        y = int(self.label_map[int(row["label"])])
+    test_dataset = None
+    if with_test:
+        try:
+            test_dataset = _build_dataset(cfg, "test")
+        except FileNotFoundError:
+            pass
 
-        x = torch.from_numpy(x).float()
-        y = torch.tensor(y, dtype=torch.long)
+    return train_dataset, val_dataset, test_dataset
 
-        if not self.return_meta:
-            return x, y
 
-        meta: Dict[str, Any] = {}
-        for key in ["site", "label", "label_name", "group_id", "file_stem"]:
-            if key in row.index:
-                meta[key] = row[key]
-        meta["npy_path"] = str(npy_path)
+def build_finetune_dataloaders(cfg):
+    """
+    Main entry point.
 
-        return x, y, meta
+    Expected cfg examples:
+    ----------------------
+    data:
+      train_csv: "./data/metadata/train.csv"
+      val_csv: "./data/metadata/val.csv"
+      test_csv: "./data/metadata/test.csv"
+      normalize: "robust"
+      add_channel_dim: true
+      return_meta: false
+
+    train:
+      batch_size: 16
+      num_workers: 4
+      pin_memory: true
+      drop_last: true
+      seed: 42
+      labeled_fraction: 1.0
+      balance_fraction_by_class: true
+      min_samples_per_class: 1
+      weighted_sampling: false
+      label_map:
+        0: 0
+        1: 1
+    """
+    batch_size = int(_get_attr(cfg, "train.batch_size", 16))
+    num_workers = int(_get_attr(cfg, "train.num_workers", 4))
+    pin_memory = bool(_get_attr(cfg, "train.pin_memory", True))
+    drop_last = bool(_get_attr(cfg, "train.drop_last", True))
+    weighted_sampling = bool(_get_attr(cfg, "train.weighted_sampling", False))
+
+    eval_batch_size = int(_get_attr(cfg, "train.eval_batch_size", batch_size))
+
+    train_dataset, val_dataset, test_dataset = build_finetune_datasets(cfg, with_test=True)
+
+    train_loader = _build_loader(
+        dataset=train_dataset,
+        batch_size=batch_size,
+        shuffle=(not weighted_sampling),
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=drop_last,
+        weighted_sampling=weighted_sampling,
+    )
+
+    val_loader = None
+    if val_dataset is not None:
+        val_loader = _build_loader(
+            dataset=val_dataset,
+            batch_size=eval_batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            drop_last=False,
+            weighted_sampling=False,
+        )
+
+    test_loader = None
+    if test_dataset is not None:
+        test_loader = _build_loader(
+            dataset=test_dataset,
+            batch_size=eval_batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            drop_last=False,
+            weighted_sampling=False,
+        )
+
+    print("[INFO] Fine-tune dataset summary")
+    print(f"  train: {len(train_dataset)} samples | class_counts={train_dataset.class_counts()}")
+    if val_dataset is not None:
+        print(f"  val:   {len(val_dataset)} samples | class_counts={val_dataset.class_counts()}")
+    else:
+        print("  val:   None")
+    if test_dataset is not None:
+        print(f"  test:  {len(test_dataset)} samples | class_counts={test_dataset.class_counts()}")
+    else:
+        print("  test:  None")
+
+    return train_loader, val_loader, test_loader

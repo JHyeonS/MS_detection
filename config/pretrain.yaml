@@ -12,7 +12,7 @@ pretrain:
     clip_value: 10.0
 
 data:
-  pretrain_csv: "./data/0312/metadata/experiments/stage1_pohang_only/pretrain.csv"
+  pretrain_csv: "pretrain.csv"
   allowed_labels: [0, 1, 2]
   add_channel_dim: true
   normalize: "robust"
