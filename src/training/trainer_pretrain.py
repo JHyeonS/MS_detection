@@ -90,6 +90,22 @@ def cfg_get(cfg: Any, *keys: str, default=None):
     return cur
 
 
+def compute_center_c(z_buffer, eps: float = 1e-6) -> torch.Tensor:
+    """
+    z_buffer: list of (B, D) tensors on cpu
+    return: (D,)
+    """
+    if len(z_buffer) == 0:
+        raise ValueError("z_buffer is empty. Cannot compute hypersphere center c.")
+
+    z_all = torch.cat(z_buffer, dim=0)   # (N, D)
+    c = z_all.mean(dim=0)
+
+    # Deep SVDD / Deep SAD 류에서 너무 0 근처인 차원은 약간 밀어내는 편이 흔함
+    c[(c.abs() < eps) & (c < 0)] = -eps
+    c[(c.abs() < eps) & (c >= 0)] = eps
+    return c
+
 # -----------------------------------------------------------------------------
 # misc utils
 # -----------------------------------------------------------------------------
@@ -238,6 +254,7 @@ def save_checkpoint(
     epoch: int,
     best_loss: float,
     cfg: Any,
+    center_c: Optional[torch.Tensor] = None,
 ):
     ckpt = {
         "epoch": epoch,
@@ -246,6 +263,10 @@ def save_checkpoint(
         "best_loss": best_loss,
         "mode": cfg.pretrain.mode,
     }
+
+    if center_c is not None:
+        ckpt["center_c"] = center_c.detach().cpu()
+
     torch.save(ckpt, path)
 
 
@@ -267,21 +288,20 @@ def train_one_epoch_reconstruction(
     use_amp: bool,
     recon_loss_name: str = "mse",
     grad_clip: Optional[float] = None,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     model.train()
     running_loss = 0.0
     n_batches = 0
+    z_buffer = []
 
     for x in loader:
         x = x.to(device, non_blocking=True)
-
         optimizer.zero_grad(set_to_none=True)
 
         if use_amp:
             with torch.amp.autocast("cuda", enabled=use_amp):
-                output = model(x)
-                recon = parse_reconstruction_output(output, x)
-                loss = reconstruction_loss_fn(recon, x, loss_name=recon_loss_name)
+                x_hat, feat, z = model(x)
+                loss = reconstruction_loss_fn(x_hat, x, loss_name=recon_loss_name)
 
             scaler.scale(loss).backward()
 
@@ -293,9 +313,8 @@ def train_one_epoch_reconstruction(
             scaler.update()
 
         else:
-            output = model(x)
-            recon = parse_reconstruction_output(output, x)
-            loss = reconstruction_loss_fn(recon, x, loss_name=recon_loss_name)
+            x_hat, feat, z = model(x)
+            loss = reconstruction_loss_fn(x_hat, x, loss_name=recon_loss_name)
             loss.backward()
 
             if grad_clip is not None and grad_clip > 0:
@@ -303,11 +322,15 @@ def train_one_epoch_reconstruction(
 
             optimizer.step()
 
+        z_buffer.append(z.detach().cpu())
         running_loss += float(loss.item())
         n_batches += 1
 
     avg_loss = running_loss / max(n_batches, 1)
-    return {"loss": avg_loss}
+    return {
+        "loss": avg_loss,
+        "z_buffer": z_buffer,
+    }
 
 
 def train_one_epoch_contrast(
@@ -412,6 +435,7 @@ def main():
     else:
         train_loader = build_contrast_pretrain_dataloader(cfg)
 
+
     model = CAE(cfg).to(device)
     print(f"[INFO] model params: {count_parameters(model):,}")
 
@@ -456,6 +480,10 @@ def main():
                 grad_clip=grad_clip,
             )
 
+        center_c = None
+        if mode == "reconstruction":
+            center_c = compute_center_c(metrics["z_buffer"])
+
         train_loss = metrics["loss"]
         train_loss_history.append(train_loss)
 
@@ -478,6 +506,7 @@ def main():
             epoch=epoch,
             best_loss=best_loss,
             cfg=cfg,
+            center_c=center_c,
         )
         save_encoder_only(save_dir / "last_encoder.pt", model)
 
@@ -493,6 +522,7 @@ def main():
                 epoch=epoch,
                 best_loss=best_loss,
                 cfg=cfg,
+                center_c=center_c,
             )
             save_encoder_only(save_dir / "best_encoder.pt", model)
 
