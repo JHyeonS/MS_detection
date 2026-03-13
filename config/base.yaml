@@ -1,0 +1,28 @@
+seed: 42
+device: "cuda"
+
+paths:
+  run_root: "./runs"
+  pretrain_root: "./runs/pretrain"
+  finetune_root: "./runs/finetune"
+  test_root: "./runs/test"
+
+data:
+  experiment: "stage1_pohang_only"
+  num_workers: 4
+  pin_memory: true
+  normalize: "robust"
+
+model:
+  encoder:
+    in_channels: 1
+    num_layers: 4
+    base_channels: 32
+    latent_dim: 128
+    norm: "bn"
+    act: "relu"
+    dropout: 0.0
+
+  cae:
+    mirror_decoder: true
+    final_act: "identity"

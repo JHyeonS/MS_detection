@@ -1,0 +1,10 @@
+stage: "test"
+
+data:
+  test_csv: "test.csv"
+
+test:
+  exp_name: "pohang_cls_v1"
+  checkpoint_path: "./runs/finetune/best.pth"
+  threshold: 0.5
+  save_dir: "./runs/test"

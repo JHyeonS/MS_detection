@@ -1,0 +1,33 @@
+pretrain:
+  mode: "contrast"
+  batch_size: 32
+  aug:
+    amp_min: 0.8
+    amp_max: 1.2
+    noise_std: 0.015
+    time_shift: 50
+    channel_gain_min: 0.95
+    channel_gain_max: 1.05
+    channel_gain_p: 0.5
+    channel_mask_width: 16
+    channel_mask_p: 0.5
+    time_mask_width: 60
+    time_mask_p: 0.5
+    polarity_flip_p: 0.1
+    channel_shift: 0
+    channel_shift_p: 0.0
+    clip_value: 10.0
+
+data:
+  pretrain_csv: "./data/metadata/experiments/stage1_pohang_only/pretrain.csv"
+  allowed_labels: [0, 1, 2]
+  add_channel_dim: false
+  normalize: "robust"
+  num_workers: 4
+  pin_memory: true
+
+  pad_value: 0.0
+
+  crop_mode:
+    train: "random"
+    eval: "center"

@@ -1,0 +1,22 @@
+train:
+  batch_size: 32
+  epochs: 100
+  lr: 0.0001
+  encoder_dropout: 0.1
+  exp_name: "pohang_cls_v1"
+  pretrained_exp_name: "pohang_recon_v1"
+  freeze_encoder: false
+  aug:
+    amp_min: 0.95
+    amp_max: 1.05
+    noise_std: 0.005
+    time_shift: 15
+    clip_value: 10.0
+
+data:
+  target_channels: 407
+  target_time: 1000
+  pad_value: 0.0
+  crop_mode:
+    train: "random"
+    eval: "center"

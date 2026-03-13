@@ -1,0 +1,26 @@
+pretrain:
+  mode: "reconstruction"
+  batch_size: 32
+  epochs: 250
+  lr: 0.001
+  encoder_dropout: 0.0
+  aug:
+    amp_min: 0.9
+    amp_max: 1.1
+    noise_std: 0.01
+    time_shift: 30
+    clip_value: 10.0
+
+data:
+  pretrain_csv: "./data/0312/metadata/experiments/stage1_pohang_only/pretrain.csv"
+  allowed_labels: [0, 1, 2]
+  add_channel_dim: true
+  normalize: "robust"
+  num_workers: 4
+  pin_memory: true
+
+  pad_value: 0.0
+
+  crop_mode:
+    train: "random"
+    eval: "center"
