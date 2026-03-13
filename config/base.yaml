@@ -2,10 +2,7 @@ seed: 42
 device: "cuda"
 
 paths:
-  run_root: "./runs"
-  pretrain_root: "./runs/pretrain"
-  finetune_root: "./runs/finetune"
-  test_root: "./runs/test"
+  run_root: "./runs/0313"
 
 data:
   experiment: "stage1_pohang_only"
