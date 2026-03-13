@@ -1,10 +1,15 @@
-stage: "test"
+test:
+  batch_size: 16
+  num_workers: 4
+  pin_memory: true
+
+  # optional
+  # save_dir: "./runs/0313/test/stage1_pohang_only"
+  # finetune_ckpt: "./runs/0313/finetune/stage1_pohang_only/best.pt"
 
 data:
-  test_csv: "./data/metadata/test.csv"
+  test_csv: "test.csv"
 
-test:
-  exp_name: "pohang_cls_v1"
-  checkpoint_path: "./runs/finetune/best.pth"
-  threshold: 0.5
-  save_dir: "./runs/test"
+  normalize: "robust"
+  add_channel_dim: true
+  return_meta: true

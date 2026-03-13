@@ -7,8 +7,8 @@ paths:
   run_root: "./runs/0313"
 
 data:
-  experiment: "stage1_pohang_only"
-  split_dir: "./data/0312/metadata/experiments/stage1_pohang_only"
+  experiment: "stage1_utah_only"
+  split_dir: "./data/0312/metadata/experiments/stage1_utah_only"
   num_workers: 4
   pin_memory: true
   normalize: "robust"

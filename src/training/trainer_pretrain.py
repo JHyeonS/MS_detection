@@ -28,6 +28,12 @@ from src.utils.visualize import save_loss_curve, save_train_history_csv
 
 from src.utils.device import setup_device_from_cfg
 
+from src.utils.config_io import (
+    save_merged_config,
+    copy_config_snapshots,
+    save_run_metadata
+)
+
 # -----------------------------------------------------------------------------
 # config utils
 # -----------------------------------------------------------------------------
@@ -428,6 +434,23 @@ def main():
         save_dir = Path(save_dir)
 
     ensure_dir(save_dir)
+
+    save_merged_config(cfg, save_dir)
+
+    copy_config_snapshots(
+        args.base_cfg,
+        args.stage_cfg,
+        save_dir
+    )
+
+    save_run_metadata(
+        {
+            "stage": "pretrain",
+            "device": str(device)
+        },
+        save_dir
+    )
+
 
     print(f"[INFO] pretrain mode: {mode}")
     print(f"[INFO] save_dir: {save_dir}")
