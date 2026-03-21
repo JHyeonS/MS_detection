@@ -1,7 +1,7 @@
 pretrain:
   mode: "contrast"
 
-  epochs: 100
+  epochs: 150
   lr: 1e-3
   weight_decay: 1e-5
   optimizer: "adamw"
@@ -15,3 +15,17 @@ pretrain:
   proj_use_bn: false
 
   encoder_dropout: 0.0
+
+data:
+  pretrain_csv: "pretrain.csv"
+  allowed_labels: [0, 1, 2]
+  add_channel_dim: true
+  normalize: "robust"
+  num_workers: 4
+  pin_memory: true
+
+  pad_value: 0.0
+
+  crop_mode:
+    train: "random"
+    eval: "center"

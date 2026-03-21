@@ -112,19 +112,6 @@ def save_json(obj: dict, path: Path) -> None:
         json.dump(obj, f, indent=2, ensure_ascii=False)
 
 
-def validate_prediction_df(df: pd.DataFrame) -> None:
-    required = ["label", "pred"]
-    for col in required:
-        if col not in df.columns:
-            raise ValueError(f"predictions.csv must contain column: '{col}'")
-
-    if "prob_anomaly" not in df.columns and "anomaly_score" not in df.columns:
-        raise ValueError(
-            "predictions.csv must contain at least one of: "
-            "'prob_anomaly', 'anomaly_score'"
-        )
-
-
 def to_binary_int(arr: pd.Series | np.ndarray) -> np.ndarray:
     x = np.asarray(arr)
 
@@ -146,7 +133,6 @@ def to_binary_int(arr: pd.Series | np.ndarray) -> np.ndarray:
     for v in x:
         s = str(v).strip().lower()
 
-        # tensor(1), tensor(0) 처리
         if s.startswith("tensor(") and s.endswith(")"):
             inner = s[len("tensor("):-1].strip()
             try:
@@ -155,7 +141,6 @@ def to_binary_int(arr: pd.Series | np.ndarray) -> np.ndarray:
             except ValueError:
                 pass
 
-        # 일반 숫자 문자열 처리: "1", "0", "1.0"
         try:
             out.append(int(float(s)))
             continue
@@ -191,17 +176,29 @@ def compute_binary_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, 
 
 def find_id_columns(df: pd.DataFrame) -> List[str]:
     candidates = [
-        "npy_path",
-        "path",
-        "file_path",
-        "filename",
-        "file_name",
-        "sample_id",
-        "id",
-        "batch_idx",
-        "sample_idx",
+        "npy_path", "path", "file_path", "filename", "file_name",
+        "sample_id", "id", "batch_idx", "sample_idx"
     ]
     return [c for c in candidates if c in df.columns]
+
+
+def validate_prediction_df(df: pd.DataFrame) -> None:
+    if "label" not in df.columns:
+        raise ValueError("test_predictions.csv must contain 'label'")
+
+    required_score_cols = ["anomaly_score", "fc_prob", "fc_logit"]
+    existing_score_cols = [c for c in required_score_cols if c in df.columns]
+    if not existing_score_cols:
+        raise ValueError(
+            f"test_predictions.csv must contain at least one of {required_score_cols}"
+        )
+
+    required_pred_cols = ["pred_anomaly", "pred_fc", "pred_or", "pred_and"]
+    existing_pred_cols = [c for c in required_pred_cols if c in df.columns]
+    if not existing_pred_cols:
+        raise ValueError(
+            f"test_predictions.csv must contain at least one of {required_pred_cols}"
+        )
 
 
 # =========================================================
@@ -410,35 +407,38 @@ def save_tsne_plot(
 # =========================================================
 # analysis blocks
 # =========================================================
-def analyze_fixed_prediction(df: pd.DataFrame, out_dir: Path) -> dict:
+def analyze_prediction_column(df: pd.DataFrame, pred_col: str, out_dir: Path) -> dict:
+    mode_dir = out_dir / pred_col
+    ensure_dir(mode_dir)
+
     y_true = to_binary_int(df["label"])
-    y_pred = to_binary_int(df["pred"])
+    y_pred = to_binary_int(df[pred_col])
 
     metrics = compute_binary_metrics(y_true, y_pred)
-    save_json(metrics, out_dir / "metrics_from_pred_column.json")
+    save_json(metrics, mode_dir / "metrics.json")
 
     save_confusion_matrix(
         y_true,
         y_pred,
-        out_dir / "confusion_matrix_pred.png",
-        title="Confusion Matrix (pred column)",
+        mode_dir / "confusion_matrix.png",
+        title=f"Confusion Matrix ({pred_col})",
     )
 
     fp_n, fn_n = save_error_cases(
         df=df,
         y_true=y_true,
         y_pred=y_pred,
-        out_fp_csv=out_dir / "false_positive_pred.csv",
-        out_fn_csv=out_dir / "false_negative_pred.csv",
+        out_fp_csv=mode_dir / "false_positive.csv",
+        out_fn_csv=mode_dir / "false_negative.csv",
     )
 
     summary = {
-        "mode": "pred_column",
+        "pred_col": pred_col,
         **metrics,
         "false_positive_rows": fp_n,
         "false_negative_rows": fn_n,
     }
-    save_json(summary, out_dir / "summary_pred_column.json")
+    save_json(summary, mode_dir / "summary.json")
     return summary
 
 
@@ -543,12 +543,12 @@ def main():
     out_dir = cfg_get(cfg, "analyze", "out_dir", default=None)
 
     if pred_csv is None:
-        pred_csv = save_dir / "predictions.csv"
+        pred_csv = save_dir / "test_predictions.csv"
     else:
         pred_csv = Path(pred_csv)
 
     if metrics_json is None:
-        metrics_json = save_dir / "metrics.json"
+        metrics_json = save_dir / "test_metrics_fixed_threshold.json"
     else:
         metrics_json = Path(metrics_json)
 
@@ -564,7 +564,7 @@ def main():
     ensure_dir(out_dir)
 
     if not pred_csv.exists():
-        raise FileNotFoundError(f"predictions.csv not found: {pred_csv}")
+        raise FileNotFoundError(f"test_predictions.csv not found: {pred_csv}")
 
     df = pd.read_csv(pred_csv)
     validate_prediction_df(df)
@@ -584,36 +584,18 @@ def main():
         "id_columns_detected": find_id_columns(df),
     }
 
-    overview["pred_column_summary"] = analyze_fixed_prediction(df, out_dir)
+    for pred_col in ["pred_anomaly", "pred_fc", "pred_or", "pred_and"]:
+        if pred_col in df.columns:
+            overview[f"{pred_col}_summary"] = analyze_prediction_column(df, pred_col, out_dir)
 
-    if "prob_anomaly" in df.columns:
-        overview["prob_anomaly_summary"] = analyze_score_threshold(
-            df=df,
-            score_col="prob_anomaly",
-            out_dir=out_dir,
-            n_thresholds=threshold_points,
-        )
-
-    if "anomaly_score" in df.columns:
-        overview["anomaly_score_summary"] = analyze_score_threshold(
-            df=df,
-            score_col="anomaly_score",
-            out_dir=out_dir,
-            n_thresholds=threshold_points,
-        )
-
-    if save_tsne:
-        if embedding_path is None:
-            print("[WARN] save_tsne=True but embedding_path is not set. Skip t-SNE.")
-        else:
-            emb = load_embeddings(Path(embedding_path))
-            save_tsne_plot(
-                embeddings=emb,
-                y_true=y_true,
-                out_png=out_dir / "tsne_embeddings.png",
-                max_points=tsne_max_points,
+    for score_col in ["anomaly_score", "fc_prob", "fc_logit"]:
+        if score_col in df.columns:
+            overview[f"{score_col}_summary"] = analyze_score_threshold(
+                df=df,
+                score_col=score_col,
+                out_dir=out_dir,
+                n_thresholds=threshold_points,
             )
-            overview["embedding_path"] = str(embedding_path)
 
     save_json(overview, out_dir / "analysis_overview.json")
 

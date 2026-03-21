@@ -1,0 +1,162 @@
+============================================================
+[TEST START] 2026-03-20 21:13:02 gpu=4
+CUDA_VISIBLE_DEVICES=4
+base_cfg=config/base_reconst_L7_D512_BP5_60.yaml
+train_cfg=config/train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+exp_suffix=train_stage2_unfreeze_lr3e-04_aw0p10
+test_base_cfg=.tmp_l7_test_cfg/base_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+============================================================
+pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+/home/ted1204/MS_Detection/src/training/trainer_test.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+[INFO] loaded finetuned model from: runs/hpo_stage2_reconst/finetune/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions       : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_predictions.csv
+[INFO] saved val threshold summary: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_threshold_summary.json
+[INFO] selected anomaly threshold : 13.559983
+[INFO] selected fc threshold      : 0.635586
+[INFO] saved test predictions: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_predictions.csv
+[INFO] saved test metrics    : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_metrics_fixed_threshold.json
+{
+  "thresholds": {
+    "anomaly_score": 13.559983253479004,
+    "fc_prob": 0.6355863809585571
+  },
+  "anomaly_metrics_fixed_threshold": {
+    "acc": 0.8163265306122449,
+    "precision": 0.9746835443037974,
+    "recall": 0.5968992248062015,
+    "f1": 0.7403846153846153,
+    "tp": 77,
+    "tn": 163,
+    "fp": 2,
+    "fn": 52,
+    "threshold": 13.559983253479004,
+    "score_col": "anomaly_score",
+    "pred_col": "pred_anomaly"
+  },
+  "fc_metrics_fixed_threshold": {
+    "acc": 0.8197278911564626,
+    "precision": 0.975,
+    "recall": 0.6046511627906976,
+    "f1": 0.7464114832535885,
+    "tp": 78,
+    "tn": 163,
+    "fp": 2,
+    "fn": 51,
+    "threshold": 0.6355863809585571,
+    "score_col": "fc_prob",
+    "pred_col": "pred_fc"
+  },
+  "or_metrics_fixed_threshold": {
+    "acc": 0.8197278911564626,
+    "precision": 0.975,
+    "recall": 0.6046511627906976,
+    "f1": 0.7464114832535885,
+    "tp": 78,
+    "tn": 163,
+    "fp": 2,
+    "fn": 51,
+    "pred_col": "pred_or",
+    "rule": "pred_anomaly OR pred_fc"
+  },
+  "and_metrics_fixed_threshold": {
+    "acc": 0.8163265306122449,
+    "precision": 0.9746835443037974,
+    "recall": 0.5968992248062015,
+    "f1": 0.7403846153846153,
+    "tp": 77,
+    "tn": 163,
+    "fp": 2,
+    "fn": 52,
+    "pred_col": "pred_and",
+    "rule": "pred_anomaly AND pred_fc"
+  }
+}
+[TEST DONE] base_reconst_L7_D512_BP5_60 + train_stage2_unfreeze_lr3e-04_aw0p10 status=0
+============================================================
+[TEST START] 2026-03-21 02:59:29 gpu=4
+CUDA_VISIBLE_DEVICES=4
+base_cfg=config/base_reconst_L7_D512_BP5_60.yaml
+train_cfg=config/train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+exp_suffix=train_stage2_unfreeze_lr3e-04_aw0p10
+test_base_cfg=.tmp_l7_test_cfg/base_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+============================================================
+pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+/home/ted1204/MS_Detection/src/training/trainer_test.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage2B/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+[INFO] loaded finetuned model from: runs/hpo_stage2B/finetune/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions       : runs/hpo_stage2B/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_predictions.csv
+[INFO] saved val threshold summary: runs/hpo_stage2B/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_threshold_summary.json
+[INFO] selected anomaly threshold : 13.559983
+[INFO] selected fc threshold      : 0.635586
+[INFO] saved test predictions: runs/hpo_stage2B/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_predictions.csv
+[INFO] saved test metrics    : runs/hpo_stage2B/test/pohang_hpo3_reconst_L7_D512_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_metrics_fixed_threshold.json
+{
+  "thresholds": {
+    "anomaly_score": 13.559983253479004,
+    "fc_prob": 0.6355863809585571
+  },
+  "anomaly_metrics_fixed_threshold": {
+    "acc": 0.8163265306122449,
+    "precision": 0.9746835443037974,
+    "recall": 0.5968992248062015,
+    "f1": 0.7403846153846153,
+    "tp": 77,
+    "tn": 163,
+    "fp": 2,
+    "fn": 52,
+    "threshold": 13.559983253479004,
+    "score_col": "anomaly_score",
+    "pred_col": "pred_anomaly"
+  },
+  "fc_metrics_fixed_threshold": {
+    "acc": 0.8197278911564626,
+    "precision": 0.975,
+    "recall": 0.6046511627906976,
+    "f1": 0.7464114832535885,
+    "tp": 78,
+    "tn": 163,
+    "fp": 2,
+    "fn": 51,
+    "threshold": 0.6355863809585571,
+    "score_col": "fc_prob",
+    "pred_col": "pred_fc"
+  },
+  "or_metrics_fixed_threshold": {
+    "acc": 0.8197278911564626,
+    "precision": 0.975,
+    "recall": 0.6046511627906976,
+    "f1": 0.7464114832535885,
+    "tp": 78,
+    "tn": 163,
+    "fp": 2,
+    "fn": 51,
+    "pred_col": "pred_or",
+    "rule": "pred_anomaly OR pred_fc"
+  },
+  "and_metrics_fixed_threshold": {
+    "acc": 0.8163265306122449,
+    "precision": 0.9746835443037974,
+    "recall": 0.5968992248062015,
+    "f1": 0.7403846153846153,
+    "tp": 77,
+    "tn": 163,
+    "fp": 2,
+    "fn": 52,
+    "pred_col": "pred_and",
+    "rule": "pred_anomaly AND pred_fc"
+  }
+}
+[TEST DONE] base_reconst_L7_D512_BP5_60 + train_stage2_unfreeze_lr3e-04_aw0p10 status=0

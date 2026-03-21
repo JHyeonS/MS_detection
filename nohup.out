@@ -1,0 +1,216 @@
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_01.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_01.log
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_02.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_02.log
+[ERROR] Unknown mode: 
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_04.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_04.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_03.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_03.log
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_05.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_05.log
+[ERROR] Unknown mode: 
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_06.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_06.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_07.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_07.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_08.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_08.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_09.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_09.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_10.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_10.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_11.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_11.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_12.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_12.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_13.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_13.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_14.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_14.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_15.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_15.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_16.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_16.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_17.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_17.log
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_18.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_18.log
+[ERROR] Unknown mode: 
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_19.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_19.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_20.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_20.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_21.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_21.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_22.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_22.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_23.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_23.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_24.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_24.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_25.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_25.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_26.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_26.log
+[ERROR] Unknown mode: 
+[RUN] gpu=0 mode= cfg=config/base_hpo_stage1_reconst_27.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_27.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_01.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_01.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_02.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_02.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_03.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_03.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_04.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_04.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_05.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_05.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_06.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_06.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_07.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_07.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_08.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_08.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_09.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_09.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_10.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_10.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_11.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_11.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_12.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_12.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_13.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_13.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_14.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_14.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_15.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_15.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_16.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_16.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_17.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_17.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_18.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_18.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_19.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_19.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_20.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_20.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_21.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_21.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_22.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_22.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_23.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_23.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_24.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_24.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_25.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_25.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_26.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_26.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_27.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_27.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_01.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_01.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_02.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_02.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_03.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_03.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_04.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_04.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_05.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_05.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_06.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_06.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_07.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_07.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_08.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_08.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_09.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_09.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_10.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_10.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_11.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_11.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_12.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_12.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_13.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_13.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_14.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_14.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_15.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_15.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_16.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_16.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_17.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_17.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_18.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_18.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_19.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_19.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_20.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_20.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_21.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_21.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_22.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_22.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_23.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_23.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_24.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_24.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_25.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_25.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_26.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_26.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_27.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_27.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_01.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_01.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_02.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_02.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_03.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_03.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_04.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_04.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_05.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_05.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_06.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_06.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_07.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_07.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_08.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_08.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_09.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_09.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_10.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_10.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_11.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_11.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_12.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_12.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_13.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_13.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_14.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_14.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_15.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_15.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_16.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_16.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_17.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_17.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_18.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_18.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_19.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_19.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_20.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_20.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_21.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_21.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_22.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_22.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_23.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_23.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_24.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_24.log
+[ERROR] Unknown mode: 
+[RUN] gpu=1 mode= cfg=config/base_hpo_stage1_reconst_25.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_25.log
+[ERROR] Unknown mode: 
+[RUN] gpu=8 mode= cfg=config/base_hpo_stage1_reconst_26.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_26.log
+[ERROR] Unknown mode: 
+[RUN] gpu=9 mode= cfg=config/base_hpo_stage1_reconst_27.yaml log=logs_hpo_stage1_reconst/base_hpo_stage1_reconst_27.log
+[ERROR] Unknown mode: 

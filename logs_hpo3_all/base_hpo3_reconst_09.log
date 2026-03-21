@@ -1,0 +1,308 @@
+============================================================
+[START] 2026-03-19 13:46:42 worker=0 gpu=1 cfg=config/base_hpo3_reconst_09.yaml mode=full
+============================================================
+[INFO] CUDA_VISIBLE_DEVICES=1
+[INFO] MODE=full
+[INFO] BASE_CFG=config/base_hpo3_reconst_09.yaml
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] pretrain mode: reconstruction
+[INFO] save_dir: runs/hpo_stage1c_reconst/pretrain/pohang_hpo3_reconst_L5_D512_BP5_80
+[INFO] model params: 8,805,825
+[Epoch 001/150] loss=5.182235 | best=5.182235 (epoch 1) | time=45.9s
+[Epoch 002/150] loss=2.602373 | best=2.602373 (epoch 2) | time=48.2s
+[Epoch 003/150] loss=2.355126 | best=2.355126 (epoch 3) | time=51.2s
+[Epoch 004/150] loss=1.289001 | best=1.289001 (epoch 4) | time=45.4s
+[Epoch 005/150] loss=0.627556 | best=0.627556 (epoch 5) | time=43.9s
+[Epoch 006/150] loss=0.417152 | best=0.417152 (epoch 6) | time=45.5s
+[Epoch 007/150] loss=0.338141 | best=0.338141 (epoch 7) | time=44.3s
+[Epoch 008/150] loss=0.294888 | best=0.294888 (epoch 8) | time=46.4s
+[Epoch 009/150] loss=0.265021 | best=0.265021 (epoch 9) | time=46.9s
+[Epoch 010/150] loss=0.249623 | best=0.249623 (epoch 10) | time=46.5s
+[Epoch 011/150] loss=0.238051 | best=0.238051 (epoch 11) | time=46.7s
+[Epoch 012/150] loss=0.223438 | best=0.223438 (epoch 12) | time=45.5s
+[Epoch 013/150] loss=0.219215 | best=0.219215 (epoch 13) | time=45.4s
+[Epoch 014/150] loss=0.208193 | best=0.208193 (epoch 14) | time=45.3s
+[Epoch 015/150] loss=0.204774 | best=0.204774 (epoch 15) | time=44.6s
+[Epoch 016/150] loss=0.190122 | best=0.190122 (epoch 16) | time=48.1s
+[Epoch 017/150] loss=0.177907 | best=0.177907 (epoch 17) | time=45.6s
+[Epoch 018/150] loss=0.166398 | best=0.166398 (epoch 18) | time=51.5s
+[Epoch 019/150] loss=0.152084 | best=0.152084 (epoch 19) | time=49.8s
+[Epoch 020/150] loss=0.146548 | best=0.146548 (epoch 20) | time=50.0s
+[Epoch 021/150] loss=0.136328 | best=0.136328 (epoch 21) | time=57.9s
+[Epoch 022/150] loss=0.124208 | best=0.124208 (epoch 22) | time=51.5s
+[Epoch 023/150] loss=0.123567 | best=0.123567 (epoch 23) | time=51.6s
+[Epoch 024/150] loss=0.108266 | best=0.108266 (epoch 24) | time=51.6s
+[Epoch 025/150] loss=0.105993 | best=0.105993 (epoch 25) | time=45.3s
+[Epoch 026/150] loss=0.102436 | best=0.102436 (epoch 26) | time=43.3s
+[Epoch 027/150] loss=0.095239 | best=0.095239 (epoch 27) | time=43.7s
+[Epoch 028/150] loss=0.089498 | best=0.089498 (epoch 28) | time=43.1s
+[Epoch 029/150] loss=0.083324 | best=0.083324 (epoch 29) | time=41.7s
+[Epoch 030/150] loss=0.078995 | best=0.078995 (epoch 30) | time=47.5s
+[Epoch 031/150] loss=0.073166 | best=0.073166 (epoch 31) | time=46.7s
+[Epoch 032/150] loss=0.071051 | best=0.071051 (epoch 32) | time=46.8s
+[Epoch 033/150] loss=0.066416 | best=0.066416 (epoch 33) | time=40.8s
+[Epoch 034/150] loss=0.061487 | best=0.061487 (epoch 34) | time=39.7s
+[Epoch 035/150] loss=0.057698 | best=0.057698 (epoch 35) | time=43.1s
+[Epoch 036/150] loss=0.057115 | best=0.057115 (epoch 36) | time=164.8s
+[Epoch 037/150] loss=0.056352 | best=0.056352 (epoch 37) | time=48.7s
+[Epoch 038/150] loss=0.054194 | best=0.054194 (epoch 38) | time=86.6s
+[Epoch 039/150] loss=0.052498 | best=0.052498 (epoch 39) | time=43.3s
+[Epoch 040/150] loss=0.049918 | best=0.049918 (epoch 40) | time=70.5s
+[Epoch 041/150] loss=0.044346 | best=0.044346 (epoch 41) | time=43.9s
+[Epoch 042/150] loss=0.045029 | best=0.044346 (epoch 41) | time=49.0s
+[Epoch 043/150] loss=0.040985 | best=0.040985 (epoch 43) | time=43.5s
+[Epoch 044/150] loss=0.040771 | best=0.040771 (epoch 44) | time=46.8s
+[Epoch 045/150] loss=0.040178 | best=0.040178 (epoch 45) | time=46.5s
+[Epoch 046/150] loss=0.037451 | best=0.037451 (epoch 46) | time=43.2s
+[Epoch 047/150] loss=0.037318 | best=0.037318 (epoch 47) | time=43.4s
+[Epoch 048/150] loss=0.036415 | best=0.036415 (epoch 48) | time=45.1s
+[Epoch 049/150] loss=0.036254 | best=0.036254 (epoch 49) | time=74.8s
+[Epoch 050/150] loss=0.034607 | best=0.034607 (epoch 50) | time=59.8s
+[Epoch 051/150] loss=0.035281 | best=0.034607 (epoch 50) | time=54.1s
+[Epoch 052/150] loss=0.032688 | best=0.032688 (epoch 52) | time=69.8s
+[Epoch 053/150] loss=0.031977 | best=0.031977 (epoch 53) | time=57.1s
+[Epoch 054/150] loss=0.031126 | best=0.031126 (epoch 54) | time=73.1s
+[Epoch 055/150] loss=0.029774 | best=0.029774 (epoch 55) | time=48.2s
+[Epoch 056/150] loss=0.028763 | best=0.028763 (epoch 56) | time=72.3s
+[Epoch 057/150] loss=0.028545 | best=0.028545 (epoch 57) | time=43.3s
+[Epoch 058/150] loss=0.031220 | best=0.028545 (epoch 57) | time=46.7s
+[Epoch 059/150] loss=0.029565 | best=0.028545 (epoch 57) | time=47.2s
+[Epoch 060/150] loss=0.027576 | best=0.027576 (epoch 60) | time=57.0s
+[Epoch 061/150] loss=0.031563 | best=0.027576 (epoch 60) | time=42.5s
+[Epoch 062/150] loss=0.031425 | best=0.027576 (epoch 60) | time=45.3s
+[Epoch 063/150] loss=0.034256 | best=0.027576 (epoch 60) | time=43.5s
+[Epoch 064/150] loss=0.029195 | best=0.027576 (epoch 60) | time=41.9s
+[Epoch 065/150] loss=0.027952 | best=0.027576 (epoch 60) | time=44.9s
+[Epoch 066/150] loss=0.025732 | best=0.025732 (epoch 66) | time=85.5s
+[Epoch 067/150] loss=0.027583 | best=0.025732 (epoch 66) | time=49.5s
+[Epoch 068/150] loss=0.025117 | best=0.025117 (epoch 68) | time=81.5s
+[Epoch 069/150] loss=0.026487 | best=0.025117 (epoch 68) | time=53.0s
+[Epoch 070/150] loss=0.024640 | best=0.024640 (epoch 70) | time=94.7s
+[Epoch 071/150] loss=0.022918 | best=0.022918 (epoch 71) | time=65.1s
+[Epoch 072/150] loss=0.026049 | best=0.022918 (epoch 71) | time=50.9s
+[Epoch 073/150] loss=0.022519 | best=0.022519 (epoch 73) | time=78.1s
+[Epoch 074/150] loss=0.024062 | best=0.022519 (epoch 73) | time=60.5s
+[Epoch 075/150] loss=0.023433 | best=0.022519 (epoch 73) | time=68.3s
+[Epoch 076/150] loss=0.023088 | best=0.022519 (epoch 73) | time=56.2s
+[Epoch 077/150] loss=0.021036 | best=0.021036 (epoch 77) | time=84.1s
+[Epoch 078/150] loss=0.023181 | best=0.021036 (epoch 77) | time=77.8s
+[Epoch 079/150] loss=0.021374 | best=0.021036 (epoch 77) | time=69.1s
+[Epoch 080/150] loss=0.022202 | best=0.021036 (epoch 77) | time=56.8s
+[Epoch 081/150] loss=0.020484 | best=0.020484 (epoch 81) | time=80.8s
+[Epoch 082/150] loss=0.024227 | best=0.020484 (epoch 81) | time=48.3s
+[Epoch 083/150] loss=0.022089 | best=0.020484 (epoch 81) | time=57.7s
+[Epoch 084/150] loss=0.018956 | best=0.018956 (epoch 84) | time=47.8s
+[Epoch 085/150] loss=0.025431 | best=0.018956 (epoch 84) | time=51.9s
+[Epoch 086/150] loss=0.022878 | best=0.018956 (epoch 84) | time=45.5s
+[Epoch 087/150] loss=0.020194 | best=0.018956 (epoch 84) | time=42.9s
+[Epoch 088/150] loss=0.021644 | best=0.018956 (epoch 84) | time=56.3s
+[Epoch 089/150] loss=0.018816 | best=0.018816 (epoch 89) | time=77.0s
+[Epoch 090/150] loss=0.020749 | best=0.018816 (epoch 89) | time=64.0s
+[Epoch 091/150] loss=0.023733 | best=0.018816 (epoch 89) | time=56.4s
+[Epoch 092/150] loss=0.020414 | best=0.018816 (epoch 89) | time=54.2s
+[Epoch 093/150] loss=0.022080 | best=0.018816 (epoch 89) | time=48.1s
+[Epoch 094/150] loss=0.019702 | best=0.018816 (epoch 89) | time=62.3s
+[Epoch 095/150] loss=0.021584 | best=0.018816 (epoch 89) | time=47.8s
+[Epoch 096/150] loss=0.018454 | best=0.018454 (epoch 96) | time=123.0s
+[Epoch 097/150] loss=0.017371 | best=0.017371 (epoch 97) | time=117.2s
+[Epoch 098/150] loss=0.018636 | best=0.017371 (epoch 97) | time=76.5s
+[Epoch 099/150] loss=0.019165 | best=0.017371 (epoch 97) | time=382.3s
+[Epoch 100/150] loss=0.017984 | best=0.017371 (epoch 97) | time=92.5s
+[Epoch 101/150] loss=0.018059 | best=0.017371 (epoch 97) | time=180.8s
+[Epoch 102/150] loss=0.019090 | best=0.017371 (epoch 97) | time=84.1s
+[Epoch 103/150] loss=0.022395 | best=0.017371 (epoch 97) | time=97.6s
+[Epoch 104/150] loss=0.017746 | best=0.017371 (epoch 97) | time=86.9s
+[Epoch 105/150] loss=0.019345 | best=0.017371 (epoch 97) | time=74.3s
+[Epoch 106/150] loss=0.017143 | best=0.017143 (epoch 106) | time=102.8s
+[Epoch 107/150] loss=0.016382 | best=0.016382 (epoch 107) | time=123.0s
+[Epoch 108/150] loss=0.016783 | best=0.016382 (epoch 107) | time=73.3s
+[Epoch 109/150] loss=0.016634 | best=0.016382 (epoch 107) | time=56.9s
+[Epoch 110/150] loss=0.014526 | best=0.014526 (epoch 110) | time=90.4s
+[Epoch 111/150] loss=0.016684 | best=0.014526 (epoch 110) | time=56.9s
+[Epoch 112/150] loss=0.018042 | best=0.014526 (epoch 110) | time=61.7s
+[Epoch 113/150] loss=0.016114 | best=0.014526 (epoch 110) | time=62.3s
+[Epoch 114/150] loss=0.014424 | best=0.014424 (epoch 114) | time=83.7s
+[Epoch 115/150] loss=0.016498 | best=0.014424 (epoch 114) | time=61.7s
+[Epoch 116/150] loss=0.016103 | best=0.014424 (epoch 114) | time=60.5s
+[Epoch 117/150] loss=0.014639 | best=0.014424 (epoch 114) | time=56.1s
+[Epoch 118/150] loss=0.017213 | best=0.014424 (epoch 114) | time=63.1s
+[Epoch 119/150] loss=0.015432 | best=0.014424 (epoch 114) | time=38.9s
+[Epoch 120/150] loss=0.015826 | best=0.014424 (epoch 114) | time=52.8s
+[Epoch 121/150] loss=0.014176 | best=0.014176 (epoch 121) | time=71.9s
+[Epoch 122/150] loss=0.012515 | best=0.012515 (epoch 122) | time=66.8s
+[Epoch 123/150] loss=0.016219 | best=0.012515 (epoch 122) | time=44.4s
+[Epoch 124/150] loss=0.016127 | best=0.012515 (epoch 122) | time=44.5s
+[Epoch 125/150] loss=0.016199 | best=0.012515 (epoch 122) | time=43.8s
+[Epoch 126/150] loss=0.014990 | best=0.012515 (epoch 122) | time=44.2s
+[Epoch 127/150] loss=0.014709 | best=0.012515 (epoch 122) | time=43.1s
+[Epoch 128/150] loss=0.014494 | best=0.012515 (epoch 122) | time=50.5s
+[Epoch 129/150] loss=0.013601 | best=0.012515 (epoch 122) | time=52.7s
+[Epoch 130/150] loss=0.015826 | best=0.012515 (epoch 122) | time=40.8s
+[Epoch 131/150] loss=0.016058 | best=0.012515 (epoch 122) | time=55.6s
+[Epoch 132/150] loss=0.014293 | best=0.012515 (epoch 122) | time=47.7s
+[Epoch 133/150] loss=0.012176 | best=0.012176 (epoch 133) | time=52.8s
+[Epoch 134/150] loss=0.013516 | best=0.012176 (epoch 133) | time=46.9s
+[Epoch 135/150] loss=0.012602 | best=0.012176 (epoch 133) | time=43.9s
+[Epoch 136/150] loss=0.013234 | best=0.012176 (epoch 133) | time=48.5s
+[Epoch 137/150] loss=0.013900 | best=0.012176 (epoch 133) | time=46.2s
+[Epoch 138/150] loss=0.012997 | best=0.012176 (epoch 133) | time=44.1s
+[Epoch 139/150] loss=0.012496 | best=0.012176 (epoch 133) | time=55.9s
+[Epoch 140/150] loss=0.012741 | best=0.012176 (epoch 133) | time=50.2s
+[Epoch 141/150] loss=0.011463 | best=0.011463 (epoch 141) | time=67.1s
+[Epoch 142/150] loss=0.012488 | best=0.011463 (epoch 141) | time=53.9s
+[Epoch 143/150] loss=0.012201 | best=0.011463 (epoch 141) | time=46.1s
+[Epoch 144/150] loss=0.013054 | best=0.011463 (epoch 141) | time=47.1s
+[Epoch 145/150] loss=0.012163 | best=0.011463 (epoch 141) | time=63.7s
+[Epoch 146/150] loss=0.009952 | best=0.009952 (epoch 146) | time=45.6s
+[Epoch 147/150] loss=0.012496 | best=0.009952 (epoch 146) | time=51.7s
+[Epoch 148/150] loss=0.011406 | best=0.009952 (epoch 146) | time=55.6s
+[Epoch 149/150] loss=0.012020 | best=0.009952 (epoch 146) | time=53.8s
+[Epoch 150/150] loss=0.011075 | best=0.009952 (epoch 146) | time=48.6s
+[DONE] training finished in 151.45 min
+[DONE] best loss = 0.009952 at epoch 146
+/home/ted1204/MS_Detection/src/training/trainer_finetune.py:186: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(encoder_ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage1c_reconst/finetune/pohang_hpo3_reconst_L5_D512_BP5_80
+[INFO] model params: 1,832,673
+[DEBUG] pretrained_encoder_path = runs/hpo_stage1c_reconst/pretrain/pohang_hpo3_reconst_L5_D512_BP5_80/best_encoder.pt
+[INFO] loaded encoder weights from: runs/hpo_stage1c_reconst/pretrain/pohang_hpo3_reconst_L5_D512_BP5_80/best_encoder.pt
+[INFO] encoder load missing keys   : 0
+[INFO] encoder load unexpected keys: 0
+[INFO] center_c shape: (512,)
+[Epoch 001/100] train_loss=0.835976 | val_loss=1.106973 | val_acc=0.5709 | best_metric=0.5709 (epoch 1) | time=13.2s
+[Epoch 002/100] train_loss=0.714488 | val_loss=0.785383 | val_acc=0.7509 | best_metric=0.7509 (epoch 2) | time=14.3s
+[Epoch 003/100] train_loss=0.665535 | val_loss=0.666845 | val_acc=0.8408 | best_metric=0.8408 (epoch 3) | time=17.0s
+[Epoch 004/100] train_loss=0.629885 | val_loss=0.585153 | val_acc=0.8235 | best_metric=0.8408 (epoch 3) | time=13.5s
+[Epoch 005/100] train_loss=0.613556 | val_loss=0.562645 | val_acc=0.8028 | best_metric=0.8408 (epoch 3) | time=11.7s
+[Epoch 006/100] train_loss=0.574371 | val_loss=0.508103 | val_acc=0.8547 | best_metric=0.8547 (epoch 6) | time=11.6s
+[Epoch 007/100] train_loss=0.534458 | val_loss=0.476309 | val_acc=0.8789 | best_metric=0.8789 (epoch 7) | time=12.3s
+[Epoch 008/100] train_loss=0.507954 | val_loss=0.826579 | val_acc=0.5606 | best_metric=0.8789 (epoch 7) | time=12.1s
+[Epoch 009/100] train_loss=0.474639 | val_loss=0.630412 | val_acc=0.7855 | best_metric=0.8789 (epoch 7) | time=12.3s
+[Epoch 010/100] train_loss=0.475394 | val_loss=0.417526 | val_acc=0.9100 | best_metric=0.9100 (epoch 10) | time=16.6s
+[Epoch 011/100] train_loss=0.418089 | val_loss=1.007460 | val_acc=0.4810 | best_metric=0.9100 (epoch 10) | time=11.7s
+[Epoch 012/100] train_loss=0.393736 | val_loss=0.376100 | val_acc=0.8893 | best_metric=0.9100 (epoch 10) | time=11.1s
+[Epoch 013/100] train_loss=0.374388 | val_loss=0.345588 | val_acc=0.9135 | best_metric=0.9135 (epoch 13) | time=13.3s
+[Epoch 014/100] train_loss=0.352732 | val_loss=0.572213 | val_acc=0.8166 | best_metric=0.9135 (epoch 13) | time=13.0s
+[Epoch 015/100] train_loss=0.350667 | val_loss=1.520255 | val_acc=0.4464 | best_metric=0.9135 (epoch 13) | time=13.1s
+[Epoch 016/100] train_loss=0.364082 | val_loss=0.455743 | val_acc=0.8720 | best_metric=0.9135 (epoch 13) | time=12.8s
+[Epoch 017/100] train_loss=0.308112 | val_loss=0.311591 | val_acc=0.9170 | best_metric=0.9170 (epoch 17) | time=17.0s
+[Epoch 018/100] train_loss=0.324144 | val_loss=0.431835 | val_acc=0.8754 | best_metric=0.9170 (epoch 17) | time=12.9s
+[Epoch 019/100] train_loss=0.388520 | val_loss=0.340125 | val_acc=0.9204 | best_metric=0.9204 (epoch 19) | time=13.9s
+[Epoch 020/100] train_loss=0.280953 | val_loss=0.289525 | val_acc=0.9481 | best_metric=0.9481 (epoch 20) | time=13.9s
+[Epoch 021/100] train_loss=0.327925 | val_loss=0.388072 | val_acc=0.9100 | best_metric=0.9481 (epoch 20) | time=13.2s
+[Epoch 022/100] train_loss=0.316896 | val_loss=0.844972 | val_acc=0.7958 | best_metric=0.9481 (epoch 20) | time=12.7s
+[Epoch 023/100] train_loss=0.246691 | val_loss=0.592848 | val_acc=0.7993 | best_metric=0.9481 (epoch 20) | time=11.4s
+[Epoch 024/100] train_loss=0.250722 | val_loss=1.072356 | val_acc=0.5986 | best_metric=0.9481 (epoch 20) | time=10.9s
+[Epoch 025/100] train_loss=0.257953 | val_loss=0.596266 | val_acc=0.7855 | best_metric=0.9481 (epoch 20) | time=10.6s
+[Epoch 026/100] train_loss=0.231571 | val_loss=0.460940 | val_acc=0.8789 | best_metric=0.9481 (epoch 20) | time=11.7s
+[Epoch 027/100] train_loss=0.222292 | val_loss=0.257633 | val_acc=0.9273 | best_metric=0.9481 (epoch 20) | time=10.6s
+[Epoch 028/100] train_loss=0.231315 | val_loss=0.929663 | val_acc=0.6574 | best_metric=0.9481 (epoch 20) | time=11.3s
+[Epoch 029/100] train_loss=0.264014 | val_loss=0.556466 | val_acc=0.8201 | best_metric=0.9481 (epoch 20) | time=11.2s
+[Epoch 030/100] train_loss=0.256964 | val_loss=0.264052 | val_acc=0.9550 | best_metric=0.9550 (epoch 30) | time=11.1s
+[Epoch 031/100] train_loss=0.230391 | val_loss=0.312579 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=11.4s
+[Epoch 032/100] train_loss=0.216916 | val_loss=0.233331 | val_acc=0.9343 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 033/100] train_loss=0.177943 | val_loss=0.536158 | val_acc=0.8789 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 034/100] train_loss=0.149274 | val_loss=0.347169 | val_acc=0.9239 | best_metric=0.9550 (epoch 30) | time=10.4s
+[Epoch 035/100] train_loss=0.163916 | val_loss=0.299729 | val_acc=0.9135 | best_metric=0.9550 (epoch 30) | time=11.4s
+[Epoch 036/100] train_loss=0.148346 | val_loss=0.713144 | val_acc=0.8547 | best_metric=0.9550 (epoch 30) | time=12.2s
+[Epoch 037/100] train_loss=0.154782 | val_loss=0.505504 | val_acc=0.8408 | best_metric=0.9550 (epoch 30) | time=11.9s
+[Epoch 038/100] train_loss=0.156323 | val_loss=0.232108 | val_acc=0.9377 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 039/100] train_loss=0.134892 | val_loss=0.314071 | val_acc=0.9170 | best_metric=0.9550 (epoch 30) | time=12.0s
+[Epoch 040/100] train_loss=0.121713 | val_loss=0.508134 | val_acc=0.8270 | best_metric=0.9550 (epoch 30) | time=11.3s
+[Epoch 041/100] train_loss=0.147235 | val_loss=0.322119 | val_acc=0.9066 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 042/100] train_loss=0.117216 | val_loss=1.976773 | val_acc=0.4879 | best_metric=0.9550 (epoch 30) | time=12.0s
+[Epoch 043/100] train_loss=0.142622 | val_loss=0.429988 | val_acc=0.8927 | best_metric=0.9550 (epoch 30) | time=10.9s
+[Epoch 044/100] train_loss=0.115195 | val_loss=0.338308 | val_acc=0.9100 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 045/100] train_loss=0.132433 | val_loss=0.428746 | val_acc=0.8754 | best_metric=0.9550 (epoch 30) | time=11.3s
+[Epoch 046/100] train_loss=0.121487 | val_loss=0.546782 | val_acc=0.8789 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 047/100] train_loss=0.096502 | val_loss=0.838932 | val_acc=0.7163 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 048/100] train_loss=0.139674 | val_loss=0.246813 | val_acc=0.9273 | best_metric=0.9550 (epoch 30) | time=11.1s
+[Epoch 049/100] train_loss=0.127151 | val_loss=0.619048 | val_acc=0.7785 | best_metric=0.9550 (epoch 30) | time=11.3s
+[Epoch 050/100] train_loss=0.095930 | val_loss=3.526312 | val_acc=0.4325 | best_metric=0.9550 (epoch 30) | time=13.3s
+[Epoch 051/100] train_loss=0.119621 | val_loss=0.795587 | val_acc=0.7266 | best_metric=0.9550 (epoch 30) | time=13.9s
+[Epoch 052/100] train_loss=0.159017 | val_loss=1.216879 | val_acc=0.6471 | best_metric=0.9550 (epoch 30) | time=11.0s
+[Epoch 053/100] train_loss=0.091483 | val_loss=0.288229 | val_acc=0.9204 | best_metric=0.9550 (epoch 30) | time=11.7s
+[Epoch 054/100] train_loss=0.093645 | val_loss=0.249064 | val_acc=0.9377 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 055/100] train_loss=0.075917 | val_loss=0.241135 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 056/100] train_loss=0.127812 | val_loss=0.563649 | val_acc=0.8131 | best_metric=0.9550 (epoch 30) | time=11.8s
+[Epoch 057/100] train_loss=0.090623 | val_loss=0.256816 | val_acc=0.9239 | best_metric=0.9550 (epoch 30) | time=13.6s
+[Epoch 058/100] train_loss=0.081327 | val_loss=0.234033 | val_acc=0.9343 | best_metric=0.9550 (epoch 30) | time=11.1s
+[Epoch 059/100] train_loss=0.099958 | val_loss=0.479923 | val_acc=0.8581 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 060/100] train_loss=0.103062 | val_loss=1.309370 | val_acc=0.6125 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 061/100] train_loss=0.093346 | val_loss=0.406735 | val_acc=0.8789 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 062/100] train_loss=0.076135 | val_loss=0.358177 | val_acc=0.8962 | best_metric=0.9550 (epoch 30) | time=12.0s
+[Epoch 063/100] train_loss=0.113952 | val_loss=0.270346 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 064/100] train_loss=0.090741 | val_loss=0.278486 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=12.1s
+[Epoch 065/100] train_loss=0.066296 | val_loss=0.688282 | val_acc=0.7820 | best_metric=0.9550 (epoch 30) | time=10.8s
+[Epoch 066/100] train_loss=0.077884 | val_loss=0.318914 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=10.9s
+[Epoch 067/100] train_loss=0.068915 | val_loss=1.211120 | val_acc=0.6574 | best_metric=0.9550 (epoch 30) | time=12.5s
+[Epoch 068/100] train_loss=0.067120 | val_loss=0.601924 | val_acc=0.8478 | best_metric=0.9550 (epoch 30) | time=10.3s
+[Epoch 069/100] train_loss=0.056811 | val_loss=0.233440 | val_acc=0.9239 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 070/100] train_loss=0.078021 | val_loss=0.443025 | val_acc=0.8581 | best_metric=0.9550 (epoch 30) | time=11.5s
+[Epoch 071/100] train_loss=0.087566 | val_loss=0.504280 | val_acc=0.8339 | best_metric=0.9550 (epoch 30) | time=11.7s
+[Epoch 072/100] train_loss=0.063144 | val_loss=0.243122 | val_acc=0.9239 | best_metric=0.9550 (epoch 30) | time=9.9s
+[Epoch 073/100] train_loss=0.058259 | val_loss=0.328159 | val_acc=0.8962 | best_metric=0.9550 (epoch 30) | time=10.8s
+[Epoch 074/100] train_loss=0.054478 | val_loss=0.387246 | val_acc=0.8997 | best_metric=0.9550 (epoch 30) | time=9.9s
+[Epoch 075/100] train_loss=0.080270 | val_loss=0.254388 | val_acc=0.9343 | best_metric=0.9550 (epoch 30) | time=10.4s
+[Epoch 076/100] train_loss=0.048703 | val_loss=0.255867 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 077/100] train_loss=0.060885 | val_loss=0.280950 | val_acc=0.9273 | best_metric=0.9550 (epoch 30) | time=10.7s
+[Epoch 078/100] train_loss=0.053663 | val_loss=0.665411 | val_acc=0.8443 | best_metric=0.9550 (epoch 30) | time=11.3s
+[Epoch 079/100] train_loss=0.049917 | val_loss=0.252697 | val_acc=0.9273 | best_metric=0.9550 (epoch 30) | time=11.3s
+[Epoch 080/100] train_loss=0.072029 | val_loss=0.421788 | val_acc=0.9031 | best_metric=0.9550 (epoch 30) | time=11.9s
+[Epoch 081/100] train_loss=0.042670 | val_loss=0.663139 | val_acc=0.7889 | best_metric=0.9550 (epoch 30) | time=10.0s
+[Epoch 082/100] train_loss=0.052577 | val_loss=0.394843 | val_acc=0.8581 | best_metric=0.9550 (epoch 30) | time=13.6s
+[Epoch 083/100] train_loss=0.045424 | val_loss=0.374963 | val_acc=0.9135 | best_metric=0.9550 (epoch 30) | time=13.3s
+[Epoch 084/100] train_loss=0.044731 | val_loss=0.365036 | val_acc=0.8858 | best_metric=0.9550 (epoch 30) | time=14.2s
+[Epoch 085/100] train_loss=0.041977 | val_loss=0.421574 | val_acc=0.8512 | best_metric=0.9550 (epoch 30) | time=12.4s
+[Epoch 086/100] train_loss=0.036092 | val_loss=1.063538 | val_acc=0.6851 | best_metric=0.9550 (epoch 30) | time=10.4s
+[Epoch 087/100] train_loss=0.054631 | val_loss=0.299689 | val_acc=0.9273 | best_metric=0.9550 (epoch 30) | time=10.7s
+[Epoch 088/100] train_loss=0.030784 | val_loss=0.289404 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=10.5s
+[Epoch 089/100] train_loss=0.052528 | val_loss=0.770810 | val_acc=0.7578 | best_metric=0.9550 (epoch 30) | time=11.8s
+[Epoch 090/100] train_loss=0.053450 | val_loss=0.289906 | val_acc=0.9135 | best_metric=0.9550 (epoch 30) | time=10.7s
+[Epoch 091/100] train_loss=0.051747 | val_loss=0.351025 | val_acc=0.8858 | best_metric=0.9550 (epoch 30) | time=11.1s
+[Epoch 092/100] train_loss=0.052430 | val_loss=0.711960 | val_acc=0.8201 | best_metric=0.9550 (epoch 30) | time=10.2s
+[Epoch 093/100] train_loss=0.029007 | val_loss=0.729651 | val_acc=0.7751 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 094/100] train_loss=0.043930 | val_loss=0.800856 | val_acc=0.7612 | best_metric=0.9550 (epoch 30) | time=10.2s
+[Epoch 095/100] train_loss=0.045292 | val_loss=0.285737 | val_acc=0.9239 | best_metric=0.9550 (epoch 30) | time=11.0s
+[Epoch 096/100] train_loss=0.041582 | val_loss=0.350374 | val_acc=0.9135 | best_metric=0.9550 (epoch 30) | time=10.4s
+[Epoch 097/100] train_loss=0.043806 | val_loss=0.332084 | val_acc=0.8927 | best_metric=0.9550 (epoch 30) | time=10.1s
+[Epoch 098/100] train_loss=0.047363 | val_loss=0.271917 | val_acc=0.9308 | best_metric=0.9550 (epoch 30) | time=11.2s
+[Epoch 099/100] train_loss=0.037385 | val_loss=0.277430 | val_acc=0.9273 | best_metric=0.9550 (epoch 30) | time=10.7s
+[Epoch 100/100] train_loss=0.030005 | val_loss=0.782097 | val_acc=0.7647 | best_metric=0.9550 (epoch 30) | time=10.5s
+[DONE] finetune finished in 19.57 min
+[DONE] best metric = 0.955017 at epoch 30
+/home/ted1204/MS_Detection/src/training/trainer_test.py:469: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80
+[INFO] loaded finetuned model from: runs/hpo_stage1c_reconst/finetune/pohang_hpo3_reconst_L5_D512_BP5_80/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions: runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/val_predictions.csv
+[INFO] saved val threshold summary: runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/val_threshold_summary.json
+[INFO] selected threshold from val: 3.645375
+[INFO] saved test predictions: runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/test_predictions.csv
+[INFO] saved test metrics    : runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/test_metrics_fixed_threshold.json
+{
+  "acc": 0.826530612244898,
+  "precision": 0.875,
+  "recall": 0.7054263565891473,
+  "f1": 0.7811158798283262,
+  "tp": 91,
+  "tn": 152,
+  "fp": 13,
+  "fn": 38,
+  "threshold": 3.6453747749328613
+}
+[WARN] json not found: runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/metrics.json
+[DONE] pred_csv : runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/test_predictions.csv
+[DONE] out_dir  : runs/hpo_stage1c_reconst/test/pohang_hpo3_reconst_L5_D512_BP5_80/analysis
+[DONE] run_hpo3_reconst.sh finished.
+[WORKER-0] finished cfg=config/base_hpo3_reconst_09.yaml status=0

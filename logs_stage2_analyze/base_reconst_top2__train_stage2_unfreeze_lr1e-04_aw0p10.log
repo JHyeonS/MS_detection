@@ -1,0 +1,11 @@
+============================================================
+[START] 2026-03-20 17:11:49
+base_cfg=config/base_reconst_top2.yaml
+train_cfg=config/train_stage2_unfreeze_lr1e-04_aw0p10.yaml
+exp_suffix=train_stage2_unfreeze_lr1e-04_aw0p10
+analyze_base_cfg=.tmp_stage2_analyze_cfg/base_reconst_top2__train_stage2_unfreeze_lr1e-04_aw0p10.yaml
+============================================================
+pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_unfreeze_lr1e-04_aw0p10
+[DONE] pred_csv : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_unfreeze_lr1e-04_aw0p10/test_predictions.csv
+[DONE] out_dir  : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_unfreeze_lr1e-04_aw0p10/analysis
+[DONE] base_reconst_top2 + train_stage2_unfreeze_lr1e-04_aw0p10 status=0

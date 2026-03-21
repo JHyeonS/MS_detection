@@ -1,176 +1,106 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from __future__ import annotations
-
-from pathlib import Path
-from typing import Optional, Callable, Dict, Any
-
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
+from scipy.signal import butter, filtfilt
 
 
-def _find_npy_column(df: pd.DataFrame) -> str:
-    for col in ["npy_path", "path"]:
-        if col in df.columns:
-            return col
-    raise ValueError("CSV must contain either 'npy_path' or 'path' column.")
+def bandpass_filter(x, fs, fmin, fmax, order=4):
+    nyq = 0.5 * fs
+    low = fmin / nyq
+    high = fmax / nyq
+    b, a = butter(order, [low, high], btype="band")
+    return filtfilt(b, a, x, axis=1).astype(np.float32)
 
 
-def _load_npy_2d(npy_path: str | Path) -> np.ndarray:
-    x = np.load(npy_path)
-
-    if x.ndim == 3:
-        if x.shape[0] == 1:
-            x = x[0]
-        else:
-            raise ValueError(f"Expected (1,C,T) or (C,T), got shape={x.shape} for {npy_path}")
-    elif x.ndim != 2:
-        raise ValueError(f"Expected 2D or 3D array, got shape={x.shape} for {npy_path}")
-
-    return x.astype(np.float32)
+def remove_mean(x):
+    return (x - x.mean(axis=1, keepdims=True)).astype(np.float32)
 
 
-def _zscore_global(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
-    mean = x.mean()
-    std = x.std()
-    return (x - mean) / (std + eps)
-
-
-def _robust_norm_global(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
+def robust_norm(x, eps=1e-8):
     med = np.median(x)
     mad = np.median(np.abs(x - med))
-    return (x - med) / (1.4826 * mad + eps)
+    return ((x - med) / (1.4826 * mad + eps)).astype(np.float32)
 
 
-class FineTuneNPYDataset(Dataset):
-    """
-    Dataset for supervised fine-tuning / validation / test.
-
-    Reads:
-        train.csv / val.csv / test.csv
-
-    Supports:
-        - labeled_fraction for label-efficiency experiments
-        - optional class-balanced subsampling
-    """
-
+class FinetuneDataset(Dataset):
     def __init__(
         self,
-        csv_path: str | Path,
-        add_channel_dim: bool = True,
-        normalize: Optional[str] = "robust",
-        transform: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        labeled_fraction: float = 1.0,
-        seed: int = 42,
-        balance_fraction_by_class: bool = True,
-        min_samples_per_class: int = 1,
-        label_map: Optional[dict[int, int]] = None,
-        return_meta: bool = False,
-    ) -> None:
-        super().__init__()
-
-        self.csv_path = Path(csv_path)
-        self.add_channel_dim = add_channel_dim
+        csv_path,
+        normalize="robust",
+        transform=None,
+        preprocess=None,
+        add_channel_dim=True,
+        return_meta=False,
+        label_map=None,
+    ):
+        self.df = pd.read_csv(csv_path).copy()
         self.normalize = normalize
         self.transform = transform
-        self.labeled_fraction = labeled_fraction
-        self.seed = seed
-        self.balance_fraction_by_class = balance_fraction_by_class
-        self.min_samples_per_class = min_samples_per_class
-        self.label_map = label_map or {0: 0, 1: 1}
-        self.return_meta = return_meta
+        self.add_channel_dim = bool(add_channel_dim)
+        self.return_meta = bool(return_meta)
+        self.label_map = label_map or {}
 
-        self.df = pd.read_csv(self.csv_path)
-        self.npy_col = _find_npy_column(self.df)
+        self.preprocess = preprocess or {}
+        self.use_detrend = self.preprocess.get("detrend", False)
+        self.use_bandpass = self.preprocess.get("bandpass", False)
+        self.bandpass_low = self.preprocess.get("bandpass_low", 5)
+        self.bandpass_high = self.preprocess.get("bandpass_high", 80)
+        self.fs = self.preprocess.get("sampling_rate", 1000)
 
-        if "label" not in self.df.columns:
-            raise ValueError(f"{self.csv_path} must contain 'label' column for fine-tuning.")
-
-        self.df = self.df[self.df["label"].isin([0, 1])].reset_index(drop=True)
-
-        if len(self.df) == 0:
-            raise ValueError(f"No labeled rows (0/1) found in {self.csv_path}")
-
-        self.df = self._apply_label_fraction(self.df)
-        self.df = self.df.sample(frac=1.0, random_state=self.seed).reset_index(drop=True)
-
-        if len(self.df) == 0:
-            raise ValueError("Dataset became empty after applying labeled_fraction.")
-
-    def _apply_label_fraction(self, df: pd.DataFrame) -> pd.DataFrame:
-        frac = float(self.labeled_fraction)
-        if not (0 < frac <= 1.0):
-            raise ValueError(f"labeled_fraction must be in (0,1], got {frac}")
-
-        if frac >= 1.0:
-            return df.reset_index(drop=True)
-
-        if self.balance_fraction_by_class:
-            parts = []
-            for cls in [0, 1]:
-                sub = df[df["label"] == cls].copy()
-                if len(sub) == 0:
-                    raise ValueError(f"Class {cls} has zero samples in {self.csv_path}")
-
-                n_keep = max(self.min_samples_per_class, int(round(len(sub) * frac)))
-                n_keep = min(n_keep, len(sub))
-                sub = sub.sample(n=n_keep, random_state=self.seed)
-                parts.append(sub)
-
-            out = pd.concat(parts, axis=0).reset_index(drop=True)
-            return out
-
-        n_keep = max(1, int(round(len(df) * frac)))
-        n_keep = min(n_keep, len(df))
-        return df.sample(n=n_keep, random_state=self.seed).reset_index(drop=True)
-
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.df)
 
-    def _normalize(self, x: np.ndarray) -> np.ndarray:
-        if self.normalize is None or self.normalize == "none":
-            return x
-        if self.normalize == "zscore":
-            return _zscore_global(x)
+    def _normalize(self, x):
         if self.normalize == "robust":
-            return _robust_norm_global(x)
-        raise ValueError(f"Unknown normalize mode: {self.normalize}")
+            return robust_norm(x)
+        if self.normalize == "zscore":
+            return ((x - x.mean()) / (x.std() + 1e-8)).astype(np.float32)
+        return x.astype(np.float32)
 
-    def get_labels(self) -> np.ndarray:
-        return self.df["label"].map(self.label_map).to_numpy(dtype=np.int64)
-
-    def class_counts(self) -> Dict[int, int]:
-        counts = self.df["label"].value_counts().to_dict()
-        return {int(k): int(v) for k, v in counts.items()}
-
-    def __getitem__(self, idx: int):
-        row = self.df.iloc[idx]
-        npy_path = row[self.npy_col]
-
-        x = _load_npy_2d(npy_path)
+    def _prepare(self, x):
+        x = x.astype(np.float32)
+        if x.ndim == 3:
+            x = x[0]
+        if self.use_detrend:
+            x = remove_mean(x)
+        if self.use_bandpass:
+            x = bandpass_filter(
+                x,
+                fs=self.fs,
+                fmin=self.bandpass_low,
+                fmax=self.bandpass_high,
+            )
         x = self._normalize(x)
+        return x
 
-        if self.transform is not None:
-            x = self.transform(x)
-
+    def _to_tensor(self, x):
+        t = torch.from_numpy(x.astype(np.float32))
         if self.add_channel_dim:
-            x = np.expand_dims(x, axis=0)  # (1, C, T)
+            t = t.unsqueeze(0)
+        return t
 
-        y = int(self.label_map[int(row["label"])])
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        npy_path = row["npy_path"]
+        label = int(row["label"])
+        label = int(self.label_map.get(label, label))
 
-        x = torch.from_numpy(x).float()
-        y = torch.tensor(y, dtype=torch.long)
+        x = np.load(npy_path)
+        x = self._prepare(x)
+        x = self.transform(x) if self.transform is not None else x
+        x = self._to_tensor(x)
 
-        if not self.return_meta:
-            return x, y
+        y = torch.tensor(label, dtype=torch.long)
 
-        meta: Dict[str, Any] = {}
-        for key in ["site", "label", "label_name", "group_id", "file_stem"]:
-            if key in row.index:
-                meta[key] = row[key]
-        meta["npy_path"] = str(npy_path)
+        if self.return_meta:
+            meta = {}
+            for key in ["npy_path", "source", "split", "label"]:
+                if key in row.index:
+                    meta[key] = row[key]
+            return x, y, meta
 
-        return x, y, meta
+        return x, y

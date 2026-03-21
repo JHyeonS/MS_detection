@@ -1,6 +1,7 @@
 data:
   train_csv: "train.csv"
   val_csv: "val.csv"
+  test_csv: "test.csv"
 
   normalize: "robust"
   add_channel_dim: true
@@ -25,12 +26,18 @@ train:
     1: 1
 
   epochs: 150
-  lr: 1e-4
-  wd: 1e-2
+  lr: 3e-4
+  weight_decay: 1e-2
   optimizer: "adamw"
   use_amp: true
   grad_clip: 1.0
 
+  cls_loss_weight: 1.0
+  anomaly_loss_weight: 0.1
   lambda_anomaly: 0.1
   eta: 1.0
   monitor: "loss"
+  monitor_mode: "min"
+  early_stopping_patience: 20
+
+  pretrained_checkpoint: null

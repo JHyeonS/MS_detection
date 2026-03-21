@@ -1,0 +1,81 @@
+============================================================
+[START] 2026-03-20 17:03:39 worker=0 gpu=0
+CUDA_VISIBLE_DEVICES=0
+base_cfg=config/base_reconst_top2.yaml
+train_cfg=config/train_stage2_freeze_lr1e-04_aw0p10.yaml
+exp_suffix=train_stage2_freeze_lr1e-04_aw0p10
+test_base_cfg=.tmp_stage2_test_cfg/base_reconst_top2__train_stage2_freeze_lr1e-04_aw0p10.yaml
+============================================================
+pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10
+/home/ted1204/MS_Detection/src/training/trainer_test.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10
+[INFO] loaded finetuned model from: runs/hpo_stage2_reconst/finetune/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions       : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10/val_predictions.csv
+[INFO] saved val threshold summary: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10/val_threshold_summary.json
+[INFO] selected anomaly threshold : 83.076744
+[INFO] selected fc threshold      : 0.448579
+[INFO] saved test predictions: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10/test_predictions.csv
+[INFO] saved test metrics    : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_stage2_freeze_lr1e-04_aw0p10/test_metrics_fixed_threshold.json
+{
+  "thresholds": {
+    "anomaly_score": 83.07674407958984,
+    "fc_prob": 0.448579341173172
+  },
+  "anomaly_metrics_fixed_threshold": {
+    "acc": 0.7380952380952381,
+    "precision": 0.9482758620689655,
+    "recall": 0.4263565891472868,
+    "f1": 0.588235294117647,
+    "tp": 55,
+    "tn": 162,
+    "fp": 3,
+    "fn": 74,
+    "threshold": 83.07674407958984,
+    "score_col": "anomaly_score",
+    "pred_col": "pred_anomaly"
+  },
+  "fc_metrics_fixed_threshold": {
+    "acc": 0.7142857142857143,
+    "precision": 0.8260869565217391,
+    "recall": 0.4418604651162791,
+    "f1": 0.5757575757575758,
+    "tp": 57,
+    "tn": 153,
+    "fp": 12,
+    "fn": 72,
+    "threshold": 0.448579341173172,
+    "score_col": "fc_prob",
+    "pred_col": "pred_fc"
+  },
+  "or_metrics_fixed_threshold": {
+    "acc": 0.7108843537414966,
+    "precision": 0.7972972972972973,
+    "recall": 0.4573643410852713,
+    "f1": 0.5812807881773399,
+    "tp": 59,
+    "tn": 150,
+    "fp": 15,
+    "fn": 70,
+    "pred_col": "pred_or",
+    "rule": "pred_anomaly OR pred_fc"
+  },
+  "and_metrics_fixed_threshold": {
+    "acc": 0.7414965986394558,
+    "precision": 1.0,
+    "recall": 0.4108527131782946,
+    "f1": 0.5824175824175825,
+    "tp": 53,
+    "tn": 165,
+    "fp": 0,
+    "fn": 76,
+    "pred_col": "pred_and",
+    "rule": "pred_anomaly AND pred_fc"
+  }
+}
+[WORKER-0] finished base_reconst_top2 + train_stage2_freeze_lr1e-04_aw0p10 status=0

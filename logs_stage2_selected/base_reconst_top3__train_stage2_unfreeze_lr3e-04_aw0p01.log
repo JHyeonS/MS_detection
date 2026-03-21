@@ -1,0 +1,173 @@
+============================================================
+[START] 2026-03-20 16:08:02 worker=3 gpu=3
+CUDA_VISIBLE_DEVICES=3
+base_cfg=config/base_reconst_top3.yaml
+train_cfg=config/train_stage2_unfreeze_lr3e-04_aw0p01.yaml
+exp_suffix=train_stage2_unfreeze_lr3e-04_aw0p01
+============================================================
+[SYNC] runs/hpo_stage1c_reconst/pretrain/pohang_hpo3_reconst_L6_D128_BP5_60 -> ./runs/hpo_stage2_reconst/pretrain/pohang_hpo3_reconst_L6_D128_BP5_60
+/home/ted1204/MS_Detection/src/training/trainer_finetune.py:189: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(encoder_ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage2_reconst/finetune/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p01
+[INFO] model params: 6,421,473
+[DEBUG] pretrained_encoder_path = runs/hpo_stage2_reconst/pretrain/pohang_hpo3_reconst_L6_D128_BP5_60/best_encoder.pt
+[INFO] loaded encoder weights from: runs/hpo_stage2_reconst/pretrain/pohang_hpo3_reconst_L6_D128_BP5_60/best_encoder.pt
+[INFO] encoder load missing keys   : 0
+[INFO] encoder load unexpected keys: 0
+[INFO] center_c shape: (128,)
+[Epoch 001/150] train_loss=0.574743 | val_loss=0.803231 | val_acc=0.5260 | best_metric=0.5260 (epoch 1) | time=10.4s
+[Epoch 002/150] train_loss=0.452127 | val_loss=0.366233 | val_acc=0.8651 | best_metric=0.8651 (epoch 2) | time=11.1s
+[Epoch 003/150] train_loss=0.376990 | val_loss=0.448835 | val_acc=0.8166 | best_metric=0.8651 (epoch 2) | time=11.6s
+[Epoch 004/150] train_loss=0.317522 | val_loss=0.310592 | val_acc=0.9066 | best_metric=0.9066 (epoch 4) | time=14.8s
+[Epoch 005/150] train_loss=0.243415 | val_loss=0.299248 | val_acc=0.8824 | best_metric=0.9066 (epoch 4) | time=11.6s
+[Epoch 006/150] train_loss=0.191678 | val_loss=0.714080 | val_acc=0.8685 | best_metric=0.9066 (epoch 4) | time=12.0s
+[Epoch 007/150] train_loss=0.183426 | val_loss=0.324746 | val_acc=0.8720 | best_metric=0.9066 (epoch 4) | time=11.0s
+[Epoch 008/150] train_loss=0.188934 | val_loss=0.319940 | val_acc=0.8685 | best_metric=0.9066 (epoch 4) | time=11.6s
+[Epoch 009/150] train_loss=0.147587 | val_loss=0.276936 | val_acc=0.9308 | best_metric=0.9308 (epoch 9) | time=12.0s
+[Epoch 010/150] train_loss=0.108512 | val_loss=0.233614 | val_acc=0.9239 | best_metric=0.9308 (epoch 9) | time=11.3s
+[Epoch 011/150] train_loss=0.094687 | val_loss=0.227137 | val_acc=0.9273 | best_metric=0.9308 (epoch 9) | time=12.3s
+[Epoch 012/150] train_loss=0.078835 | val_loss=0.217670 | val_acc=0.9446 | best_metric=0.9446 (epoch 12) | time=13.6s
+[Epoch 013/150] train_loss=0.086561 | val_loss=0.243400 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=12.6s
+[Epoch 014/150] train_loss=0.063888 | val_loss=0.346588 | val_acc=0.8478 | best_metric=0.9446 (epoch 12) | time=14.1s
+[Epoch 015/150] train_loss=0.062954 | val_loss=0.316467 | val_acc=0.8685 | best_metric=0.9446 (epoch 12) | time=15.8s
+[Epoch 016/150] train_loss=0.061686 | val_loss=0.300471 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=13.5s
+[Epoch 017/150] train_loss=0.041888 | val_loss=0.253306 | val_acc=0.9239 | best_metric=0.9446 (epoch 12) | time=13.7s
+[Epoch 018/150] train_loss=0.043693 | val_loss=0.273258 | val_acc=0.8962 | best_metric=0.9446 (epoch 12) | time=13.0s
+[Epoch 019/150] train_loss=0.038812 | val_loss=0.262949 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=14.3s
+[Epoch 020/150] train_loss=0.049486 | val_loss=0.261195 | val_acc=0.9239 | best_metric=0.9446 (epoch 12) | time=15.3s
+[Epoch 021/150] train_loss=0.036007 | val_loss=0.263928 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=12.6s
+[Epoch 022/150] train_loss=0.028364 | val_loss=0.259705 | val_acc=0.9239 | best_metric=0.9446 (epoch 12) | time=22.2s
+[Epoch 023/150] train_loss=0.030652 | val_loss=0.320308 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=22.1s
+[Epoch 024/150] train_loss=0.028098 | val_loss=0.305304 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=17.8s
+[Epoch 025/150] train_loss=0.040746 | val_loss=0.283685 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=16.6s
+[Epoch 026/150] train_loss=0.022892 | val_loss=0.242427 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=16.8s
+[Epoch 027/150] train_loss=0.027389 | val_loss=0.322149 | val_acc=0.8685 | best_metric=0.9446 (epoch 12) | time=13.8s
+[Epoch 028/150] train_loss=0.039427 | val_loss=0.495039 | val_acc=0.8962 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 029/150] train_loss=0.021399 | val_loss=0.390202 | val_acc=0.8512 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 030/150] train_loss=0.027856 | val_loss=0.314223 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=11.7s
+[Epoch 031/150] train_loss=0.030432 | val_loss=0.538825 | val_acc=0.8131 | best_metric=0.9446 (epoch 12) | time=12.5s
+[Epoch 032/150] train_loss=0.017682 | val_loss=0.303816 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 033/150] train_loss=0.017824 | val_loss=0.292129 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=12.2s
+[Epoch 034/150] train_loss=0.016579 | val_loss=0.283408 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 035/150] train_loss=0.021713 | val_loss=0.454432 | val_acc=0.8962 | best_metric=0.9446 (epoch 12) | time=12.0s
+[Epoch 036/150] train_loss=0.020096 | val_loss=0.312858 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.8s
+[Epoch 037/150] train_loss=0.016886 | val_loss=0.268232 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 038/150] train_loss=0.017483 | val_loss=0.332006 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 039/150] train_loss=0.024397 | val_loss=0.300246 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=11.6s
+[Epoch 040/150] train_loss=0.013891 | val_loss=0.310097 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 041/150] train_loss=0.021066 | val_loss=0.295801 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=11.8s
+[Epoch 042/150] train_loss=0.015025 | val_loss=0.308371 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=13.0s
+[Epoch 043/150] train_loss=0.021970 | val_loss=0.357864 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=12.6s
+[Epoch 044/150] train_loss=0.014905 | val_loss=0.312059 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=12.2s
+[Epoch 045/150] train_loss=0.044201 | val_loss=0.365899 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.5s
+[Epoch 046/150] train_loss=0.019710 | val_loss=0.410956 | val_acc=0.8962 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 047/150] train_loss=0.014430 | val_loss=0.291638 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 048/150] train_loss=0.014830 | val_loss=0.338648 | val_acc=0.8858 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 049/150] train_loss=0.016880 | val_loss=0.310834 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=12.1s
+[Epoch 050/150] train_loss=0.011110 | val_loss=0.343296 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 051/150] train_loss=0.018547 | val_loss=0.331971 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 052/150] train_loss=0.013847 | val_loss=0.334118 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.3s
+[Epoch 053/150] train_loss=0.014533 | val_loss=0.388927 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 054/150] train_loss=0.013260 | val_loss=0.396354 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 055/150] train_loss=0.014628 | val_loss=0.521228 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 056/150] train_loss=0.012218 | val_loss=0.401573 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 057/150] train_loss=0.013974 | val_loss=0.369796 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.6s
+[Epoch 058/150] train_loss=0.017870 | val_loss=0.401150 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 059/150] train_loss=0.009738 | val_loss=0.356233 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 060/150] train_loss=0.008771 | val_loss=0.396852 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 061/150] train_loss=0.013672 | val_loss=0.341841 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=9.8s
+[Epoch 062/150] train_loss=0.009134 | val_loss=0.399333 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 063/150] train_loss=0.014136 | val_loss=0.322316 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=10.9s
+[Epoch 064/150] train_loss=0.011915 | val_loss=0.269079 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 065/150] train_loss=0.014600 | val_loss=0.439706 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 066/150] train_loss=0.009608 | val_loss=0.378475 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=9.8s
+[Epoch 067/150] train_loss=0.009488 | val_loss=0.339054 | val_acc=0.8893 | best_metric=0.9446 (epoch 12) | time=10.3s
+[Epoch 068/150] train_loss=0.005603 | val_loss=0.420051 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 069/150] train_loss=0.008605 | val_loss=0.512075 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 070/150] train_loss=0.011112 | val_loss=0.447930 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 071/150] train_loss=0.008406 | val_loss=0.422160 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 072/150] train_loss=0.008123 | val_loss=0.356095 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 073/150] train_loss=0.007706 | val_loss=0.357001 | val_acc=0.8824 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 074/150] train_loss=0.009655 | val_loss=1.008710 | val_acc=0.8408 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 075/150] train_loss=0.010978 | val_loss=0.391207 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 076/150] train_loss=0.005376 | val_loss=0.472744 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 077/150] train_loss=0.006603 | val_loss=0.448260 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 078/150] train_loss=0.005360 | val_loss=0.498966 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.9s
+[Epoch 079/150] train_loss=0.007842 | val_loss=0.671921 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 080/150] train_loss=0.008489 | val_loss=0.446460 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 081/150] train_loss=0.004532 | val_loss=0.360408 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 082/150] train_loss=0.009214 | val_loss=0.386830 | val_acc=0.8927 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 083/150] train_loss=0.009406 | val_loss=0.356188 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 084/150] train_loss=0.007998 | val_loss=0.571723 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 085/150] train_loss=0.012978 | val_loss=0.414192 | val_acc=0.8547 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 086/150] train_loss=0.016447 | val_loss=0.397225 | val_acc=0.9239 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 087/150] train_loss=0.008902 | val_loss=0.408242 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 088/150] train_loss=0.013021 | val_loss=1.014180 | val_acc=0.8547 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 089/150] train_loss=0.007964 | val_loss=0.403637 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=11.9s
+[Epoch 090/150] train_loss=0.006455 | val_loss=0.532068 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 091/150] train_loss=0.009265 | val_loss=0.505194 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.4s
+[Epoch 092/150] train_loss=0.017143 | val_loss=0.545712 | val_acc=0.8097 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 093/150] train_loss=0.008417 | val_loss=0.459808 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.1s
+[Epoch 094/150] train_loss=0.008914 | val_loss=0.414782 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.9s
+[Epoch 095/150] train_loss=0.006973 | val_loss=0.466070 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 096/150] train_loss=0.005397 | val_loss=0.374047 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 097/150] train_loss=0.004801 | val_loss=0.575121 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.3s
+[Epoch 098/150] train_loss=0.006198 | val_loss=0.464896 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.5s
+[Epoch 099/150] train_loss=0.002966 | val_loss=0.418666 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 100/150] train_loss=0.005979 | val_loss=0.417625 | val_acc=0.8997 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 101/150] train_loss=0.008767 | val_loss=0.534001 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.1s
+[Epoch 102/150] train_loss=0.007075 | val_loss=0.521987 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 103/150] train_loss=0.005322 | val_loss=0.373737 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 104/150] train_loss=0.005266 | val_loss=0.503838 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.9s
+[Epoch 105/150] train_loss=0.003527 | val_loss=0.436525 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 106/150] train_loss=0.005372 | val_loss=0.410905 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 107/150] train_loss=0.002629 | val_loss=0.451756 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=9.8s
+[Epoch 108/150] train_loss=0.005792 | val_loss=0.569591 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 109/150] train_loss=0.006582 | val_loss=0.569838 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 110/150] train_loss=0.005270 | val_loss=0.429918 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 111/150] train_loss=0.005950 | val_loss=0.465128 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 112/150] train_loss=0.007185 | val_loss=0.376302 | val_acc=0.8893 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 113/150] train_loss=0.004558 | val_loss=0.373336 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 114/150] train_loss=0.005621 | val_loss=0.548247 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 115/150] train_loss=0.007662 | val_loss=0.392984 | val_acc=0.8824 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 116/150] train_loss=0.010851 | val_loss=0.395415 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 117/150] train_loss=0.004478 | val_loss=0.440449 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 118/150] train_loss=0.005558 | val_loss=0.480411 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 119/150] train_loss=0.003069 | val_loss=0.547690 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.9s
+[Epoch 120/150] train_loss=0.004947 | val_loss=0.463028 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 121/150] train_loss=0.004484 | val_loss=0.447189 | val_acc=0.8685 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 122/150] train_loss=0.004976 | val_loss=0.475781 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 123/150] train_loss=0.005784 | val_loss=0.462930 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=11.0s
+[Epoch 124/150] train_loss=0.007256 | val_loss=0.526714 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.6s
+[Epoch 125/150] train_loss=0.004293 | val_loss=0.472634 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 126/150] train_loss=0.005949 | val_loss=0.566620 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 127/150] train_loss=0.007386 | val_loss=0.471005 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=11.2s
+[Epoch 128/150] train_loss=0.005126 | val_loss=0.423432 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 129/150] train_loss=0.004082 | val_loss=0.506383 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 130/150] train_loss=0.003153 | val_loss=0.495399 | val_acc=0.9135 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 131/150] train_loss=0.002828 | val_loss=0.400403 | val_acc=0.9031 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 132/150] train_loss=0.007570 | val_loss=1.042421 | val_acc=0.8824 | best_metric=0.9446 (epoch 12) | time=10.1s
+[Epoch 133/150] train_loss=0.005497 | val_loss=0.587810 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 134/150] train_loss=0.002608 | val_loss=0.461587 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.3s
+[Epoch 135/150] train_loss=0.002502 | val_loss=0.408920 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.0s
+[Epoch 136/150] train_loss=0.006827 | val_loss=1.423224 | val_acc=0.6782 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 137/150] train_loss=0.015500 | val_loss=0.677897 | val_acc=0.9100 | best_metric=0.9446 (epoch 12) | time=10.8s
+[Epoch 138/150] train_loss=0.008500 | val_loss=0.695642 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=11.1s
+[Epoch 139/150] train_loss=0.018461 | val_loss=0.400008 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=9.9s
+[Epoch 140/150] train_loss=0.009428 | val_loss=0.755426 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 141/150] train_loss=0.005399 | val_loss=0.380773 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 142/150] train_loss=0.003547 | val_loss=0.460219 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 143/150] train_loss=0.011742 | val_loss=0.512231 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.7s
+[Epoch 144/150] train_loss=0.003837 | val_loss=0.545778 | val_acc=0.9170 | best_metric=0.9446 (epoch 12) | time=10.2s
+[Epoch 145/150] train_loss=0.002342 | val_loss=0.471392 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.3s
+[Epoch 146/150] train_loss=0.006856 | val_loss=0.552063 | val_acc=0.9239 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 147/150] train_loss=0.003765 | val_loss=0.455725 | val_acc=0.9066 | best_metric=0.9446 (epoch 12) | time=10.4s
+[Epoch 148/150] train_loss=0.002875 | val_loss=0.509570 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.5s
+[Epoch 149/150] train_loss=0.005492 | val_loss=0.527835 | val_acc=0.9204 | best_metric=0.9446 (epoch 12) | time=10.6s
+[Epoch 150/150] train_loss=0.006588 | val_loss=0.386957 | val_acc=0.8893 | best_metric=0.9446 (epoch 12) | time=10.8s
+[DONE] finetune finished in 28.38 min
+[DONE] best metric = 0.944637 at epoch 12
+[WORKER-3] finished base_reconst_top3 + train_stage2_unfreeze_lr3e-04_aw0p01 status=0

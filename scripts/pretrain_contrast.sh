@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 export PYTHONPATH=.
+export MPLBACKEND=Agg
 
-BASE_CONFIG=config/base.yaml
-CONFIG=config/pretrain_contrast.yaml
+BASE_CFG="${1:-config/base_contrast.yaml}"
+STAGE_CFG="${2:-config/pretrain_contrast.yaml}"
 
-python src/training/trainer_contrast.py \
-  --base_config $BASE_CONFIG \
-  --config $CONFIG
+python src/training/trainer_pretrain.py \
+  --base_cfg "${BASE_CFG}" \
+  --stage_cfg "${STAGE_CFG}"

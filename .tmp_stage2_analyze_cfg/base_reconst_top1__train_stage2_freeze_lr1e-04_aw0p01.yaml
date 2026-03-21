@@ -1,0 +1,31 @@
+seed: 42
+device:
+  type: cuda
+  ids:
+  - 0
+paths:
+  run_root: ./runs/hpo_stage2_reconst
+data:
+  experiment: pohang_hpo3_reconst_L5_D512_BP5_60__train_stage2_freeze_lr1e-04_aw0p01
+  split_dir: ./data/0312/metadata/experiments/stage1_pohang_only
+  num_workers: 4
+  pin_memory: true
+  normalize: robust
+  preprocess:
+    detrend: true
+    bandpass: true
+    bandpass_low: 5
+    bandpass_high: 60
+    sampling_rate: 1000
+model:
+  encoder:
+    in_channels: 1
+    num_layers: 5
+    base_channels: 32
+    latent_dim: 512
+    norm: bn
+    act: relu
+    dropout: 0.0
+  cae:
+    mirror_decoder: true
+    final_act: identity

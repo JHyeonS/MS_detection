@@ -1,0 +1,11 @@
+============================================================
+[START] 2026-03-20 17:05:20
+base_cfg=config/base_contrast_top1.yaml
+train_cfg=config/train_stage2_freeze_lr3e-04_aw0p01.yaml
+exp_suffix=train_stage2_freeze_lr3e-04_aw0p01
+analyze_base_cfg=.tmp_stage2_analyze_cfg/base_contrast_top1__train_stage2_freeze_lr3e-04_aw0p01.yaml
+============================================================
+pohang_hpo3_contrast_L6_D512_BP5_80__train_stage2_freeze_lr3e-04_aw0p01
+[DONE] pred_csv : runs/hpo_stage2_contrast/test/pohang_hpo3_contrast_L6_D512_BP5_80__train_stage2_freeze_lr3e-04_aw0p01/test_predictions.csv
+[DONE] out_dir  : runs/hpo_stage2_contrast/test/pohang_hpo3_contrast_L6_D512_BP5_80__train_stage2_freeze_lr3e-04_aw0p01/analysis
+[DONE] base_contrast_top1 + train_stage2_freeze_lr3e-04_aw0p01 status=0

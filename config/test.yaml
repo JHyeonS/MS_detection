@@ -4,8 +4,13 @@ test:
   pin_memory: true
 
   # optional
-  # save_dir: "./runs/0313/test/stage1_pohang_only"
-  # finetune_ckpt: "./runs/0313/finetune/stage1_pohang_only/best.pt"
+  # checkpoint_path: "./runs/hpo_stage2_reconst/finetune/your_experiment/best.pt"
+
+  # threshold policy
+  # - val loader가 있으면 아래 threshold들은 자동으로 val에서 결정됨
+  # - val loader가 없을 때만 수동 threshold 사용
+  anomaly_score_threshold: null
+  fc_prob_threshold: null
 
 data:
   test_csv: "test.csv"

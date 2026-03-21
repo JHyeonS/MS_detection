@@ -1,0 +1,81 @@
+============================================================
+[START] 2026-03-20 17:04:10 worker=1 gpu=1
+CUDA_VISIBLE_DEVICES=1
+base_cfg=config/base_reconst_top3.yaml
+train_cfg=config/train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+exp_suffix=train_stage2_unfreeze_lr3e-04_aw0p10
+test_base_cfg=.tmp_stage2_test_cfg/base_reconst_top3__train_stage2_unfreeze_lr3e-04_aw0p10.yaml
+============================================================
+pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+/home/ted1204/MS_Detection/src/training/trainer_test.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10
+[INFO] loaded finetuned model from: runs/hpo_stage2_reconst/finetune/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions       : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_predictions.csv
+[INFO] saved val threshold summary: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/val_threshold_summary.json
+[INFO] selected anomaly threshold : 4.344203
+[INFO] selected fc threshold      : 0.343966
+[INFO] saved test predictions: runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_predictions.csv
+[INFO] saved test metrics    : runs/hpo_stage2_reconst/test/pohang_hpo3_reconst_L6_D128_BP5_60__train_stage2_unfreeze_lr3e-04_aw0p10/test_metrics_fixed_threshold.json
+{
+  "thresholds": {
+    "anomaly_score": 4.344202518463135,
+    "fc_prob": 0.3439658284187317
+  },
+  "anomaly_metrics_fixed_threshold": {
+    "acc": 0.8707482993197279,
+    "precision": 0.8956521739130435,
+    "recall": 0.7984496124031008,
+    "f1": 0.8442622950819673,
+    "tp": 103,
+    "tn": 153,
+    "fp": 12,
+    "fn": 26,
+    "threshold": 4.344202518463135,
+    "score_col": "anomaly_score",
+    "pred_col": "pred_anomaly"
+  },
+  "fc_metrics_fixed_threshold": {
+    "acc": 0.8639455782312925,
+    "precision": 0.8938053097345132,
+    "recall": 0.7829457364341085,
+    "f1": 0.8347107438016528,
+    "tp": 101,
+    "tn": 153,
+    "fp": 12,
+    "fn": 28,
+    "threshold": 0.3439658284187317,
+    "score_col": "fc_prob",
+    "pred_col": "pred_fc"
+  },
+  "or_metrics_fixed_threshold": {
+    "acc": 0.8673469387755102,
+    "precision": 0.8879310344827587,
+    "recall": 0.7984496124031008,
+    "f1": 0.8408163265306123,
+    "tp": 103,
+    "tn": 152,
+    "fp": 13,
+    "fn": 26,
+    "pred_col": "pred_or",
+    "rule": "pred_anomaly OR pred_fc"
+  },
+  "and_metrics_fixed_threshold": {
+    "acc": 0.8673469387755102,
+    "precision": 0.9017857142857143,
+    "recall": 0.7829457364341085,
+    "f1": 0.8381742738589212,
+    "tp": 101,
+    "tn": 154,
+    "fp": 11,
+    "fn": 28,
+    "pred_col": "pred_and",
+    "rule": "pred_anomaly AND pred_fc"
+  }
+}
+[WORKER-1] finished base_reconst_top3 + train_stage2_unfreeze_lr3e-04_aw0p10 status=0
