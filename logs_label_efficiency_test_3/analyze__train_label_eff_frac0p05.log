@@ -1,0 +1,11 @@
+============================================================
+[ANALYZE START] 2026-03-22 02:43:20
+base_cfg=config/base_3.yaml
+train_cfg=config/train_label_eff_frac0p05.yaml
+exp_suffix=train_label_eff_frac0p05
+analyze_base_cfg=.tmp_label_eff_analyze_cfg/train_label_eff_frac0p05.yaml
+============================================================
+pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05
+[DONE] pred_csv : runs/label_efficiency_stage2_joint/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/test_predictions.csv
+[DONE] out_dir  : runs/label_efficiency_stage2_joint/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/analysis
+[ANALYZE DONE] train_label_eff_frac0p05 status=0

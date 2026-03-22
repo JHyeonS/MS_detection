@@ -1,0 +1,81 @@
+============================================================
+[TEST START] 2026-03-22 01:16:17 gpu=4
+CUDA_VISIBLE_DEVICES=4
+base_cfg=config/base_5.yaml
+train_cfg=config/train_label_eff_frac0p05.yaml
+exp_suffix=train_label_eff_frac0p05
+test_base_cfg=.tmp_label_eff_test_cfg/train_label_eff_frac0p05.yaml
+============================================================
+pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05
+/home/ted1204/MS_Detection/src/training/trainer_test.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(ckpt_path, map_location="cpu")
+[INFO] device: cuda
+[INFO] visible GPUs: 0
+[INFO] device: cuda
+[INFO] save_dir: runs/stage3_utah_to_pohang/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05
+[INFO] loaded finetuned model from: runs/stage3_utah_to_pohang/finetune/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/best.pt
+[INFO] load missing keys   : 0
+[INFO] load unexpected keys: 0
+[INFO] saved val predictions       : runs/stage3_utah_to_pohang/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/val_predictions.csv
+[INFO] saved val threshold summary: runs/stage3_utah_to_pohang/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/val_threshold_summary.json
+[INFO] selected anomaly threshold : 910.676575
+[INFO] selected fc threshold      : 0.365905
+[INFO] saved test predictions: runs/stage3_utah_to_pohang/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/test_predictions.csv
+[INFO] saved test metrics    : runs/stage3_utah_to_pohang/test/pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p05/test_metrics_fixed_threshold.json
+{
+  "thresholds": {
+    "anomaly_score": 910.6765747070312,
+    "fc_prob": 0.3659048080444336
+  },
+  "anomaly_metrics_fixed_threshold": {
+    "acc": 0.5566119273984442,
+    "precision": 0.38958333333333334,
+    "recall": 0.4594594594594595,
+    "f1": 0.4216459977452086,
+    "tp": 187,
+    "tn": 457,
+    "fp": 293,
+    "fn": 220,
+    "threshold": 910.6765747070312,
+    "score_col": "anomaly_score",
+    "pred_col": "pred_anomaly"
+  },
+  "fc_metrics_fixed_threshold": {
+    "acc": 0.68971477960242,
+    "precision": 0.5681818181818182,
+    "recall": 0.4914004914004914,
+    "f1": 0.5270092226613966,
+    "tp": 200,
+    "tn": 598,
+    "fp": 152,
+    "fn": 207,
+    "threshold": 0.3659048080444336,
+    "score_col": "fc_prob",
+    "pred_col": "pred_fc"
+  },
+  "or_metrics_fixed_threshold": {
+    "acc": 0.567847882454624,
+    "precision": 0.4202401372212693,
+    "recall": 0.601965601965602,
+    "f1": 0.494949494949495,
+    "tp": 245,
+    "tn": 412,
+    "fp": 338,
+    "fn": 162,
+    "pred_col": "pred_or",
+    "rule": "pred_anomaly OR pred_fc"
+  },
+  "and_metrics_fixed_threshold": {
+    "acc": 0.6784788245462403,
+    "precision": 0.570281124497992,
+    "recall": 0.3488943488943489,
+    "f1": 0.4329268292682927,
+    "tp": 142,
+    "tn": 643,
+    "fp": 107,
+    "fn": 265,
+    "pred_col": "pred_and",
+    "rule": "pred_anomaly AND pred_fc"
+  }
+}
+[TEST DONE] train_label_eff_frac0p05 status=0

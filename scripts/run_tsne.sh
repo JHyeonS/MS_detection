@@ -29,7 +29,7 @@ echo "[INFO] PYTHONPATH=$PYTHONPATH"
 # =========================================
 # 경로 설정
 # =========================================
-RUN_ROOT=runs/hpo_stage1c_contrast/finetune
+RUN_ROOT=runs/stage_label_efficiency_with_fixed_center/label_efficiency_stage1_utah_only/finetune
 
 BASE_CFG=${RUN_ROOT}/${EXP_NAME}/config_snapshot/base_config.yaml
 STAGE_CFG=${RUN_ROOT}/${EXP_NAME}/config_snapshot/stage_config.yaml

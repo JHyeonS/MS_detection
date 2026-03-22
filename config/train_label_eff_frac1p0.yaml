@@ -17,12 +17,11 @@ train:
 
   seed: 42
 
-  # label efficiency controls
-  use_labeled_fraction: false
+  use_labeled_fraction: true
   labeled_fraction: 1.0
   balance_fraction_by_class: true
   min_samples_per_class: 1
-  fraction_seed: null
+  fraction_seed: 42
 
   weighted_sampling: false
 

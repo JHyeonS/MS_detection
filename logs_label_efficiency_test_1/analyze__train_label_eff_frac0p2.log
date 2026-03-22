@@ -1,0 +1,48 @@
+============================================================
+[ANALYZE START] 2026-03-21 22:29:56
+base_cfg=config/base_2.yaml
+train_cfg=config/train_label_eff_frac0p2.yaml
+exp_suffix=train_label_eff_frac0p2
+analyze_base_cfg=.tmp_label_eff_analyze_cfg/train_label_eff_frac0p2.yaml
+============================================================
+pohang_hpo3_reconst_L6_D512_BP3_50__train_label_eff_frac0p2
+Traceback (most recent call last):
+  File "/home/ted1204/MS_Detection/src/analysis/analyze.py", line 611, in <module>
+    main()
+  File "/home/ted1204/MS_Detection/src/analysis/analyze.py", line 593, in main
+    overview[f"{score_col}_summary"] = analyze_score_threshold(
+  File "/home/ted1204/MS_Detection/src/analysis/analyze.py", line 482, in analyze_score_threshold
+    df_th = threshold_sweep(y_true, scores, thresholds)
+  File "/home/ted1204/MS_Detection/src/analysis/analyze.py", line 298, in threshold_sweep
+    row = compute_binary_metrics(y_true, y_pred)
+  File "/home/ted1204/MS_Detection/src/analysis/analyze.py", line 169, in compute_binary_metrics
+    "f1": float(f1_score(y_true, y_pred, zero_division=0)),
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 218, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/metrics/_classification.py", line 1465, in f1_score
+    return fbeta_score(
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/metrics/_classification.py", line 1683, in fbeta_score
+    _, _, f, _ = precision_recall_fscore_support(
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/metrics/_classification.py", line 2000, in precision_recall_fscore_support
+    MCM = multilabel_confusion_matrix(
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/metrics/_classification.py", line 688, in multilabel_confusion_matrix
+    y_pred = le.transform(y_pred)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/preprocessing/_label.py", line 134, in transform
+    return _encode(y, uniques=self.classes_)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_encode.py", line 240, in _encode
+    diff = _check_unknown(values, uniques)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/utils/_encode.py", line 305, in _check_unknown
+    diff = xpx.setdiff1d(unique_values, known_values, assume_unique=True, xp=xp)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/externals/array_api_extra/_lib/_funcs.py", line 817, in setdiff1d
+    x1_, x2_ = asarrays(x1, x2, xp=xp)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/externals/array_api_extra/_lib/_utils/_helpers.py", line 161, in asarrays
+    a_scalar = is_python_scalar(a)
+  File "/home/ted1204/.conda/envs/ms_detection/lib/python3.10/site-packages/sklearn/externals/array_api_extra/_lib/_utils/_helpers.py", line 124, in is_python_scalar
+    return isinstance(x, int | float | complex) and not is_numpy_array(x)
+KeyboardInterrupt
