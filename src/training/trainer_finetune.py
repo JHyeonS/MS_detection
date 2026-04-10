@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# src/training/trainer_finetune.py
 
 from __future__ import annotations
-
 import argparse
 import json
 import math
@@ -54,12 +52,12 @@ def _to_attrdict(obj):
     return obj
 
 
-def _load_yaml(path: str | Path) -> dict:
+def _load_yaml(path):
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
-def _deep_update(base: dict, override: dict) -> dict:
+def _deep_update(base, override):
     out = dict(base)
     for k, v in override.items():
         if isinstance(v, dict) and isinstance(out.get(k), dict):
@@ -69,14 +67,13 @@ def _deep_update(base: dict, override: dict) -> dict:
     return out
 
 
-def load_config(base_cfg_path: str | Path, stage_cfg_path: str | Path):
+def load_config(base_cfg_path, stage_cfg_path):
     base_cfg = _load_yaml(base_cfg_path)
     stage_cfg = _load_yaml(stage_cfg_path)
-    merged = _deep_update(base_cfg, stage_cfg)
-    return _to_attrdict(merged)
+    return _to_attrdict(_deep_update(base_cfg, stage_cfg))
 
 
-def cfg_get(cfg: Any, *keys: str, default=None):
+def cfg_get(cfg, *keys, default=None):
     cur = cfg
     for key in keys:
         if cur is None:
@@ -92,18 +89,18 @@ def cfg_get(cfg: Any, *keys: str, default=None):
     return cur
 
 
-def set_seed(seed: int = 42):
+def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
 
-def ensure_dir(path: str | Path):
+def ensure_dir(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def count_parameters(model: nn.Module) -> int:
+def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
@@ -140,7 +137,7 @@ class FinetuneMSDNet(nn.Module):
             for p in self.encoder.parameters():
                 p.requires_grad = False
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x):
         z = self.encoder(x)
         logit = self.head(z)
         return z, logit
@@ -158,7 +155,7 @@ def parse_finetune_batch(batch):
     raise TypeError(f"Unsupported batch type: {type(batch)}")
 
 
-def load_encoder_weights(model: FinetuneMSDNet, encoder_ckpt_path: str | Path):
+def load_encoder_weights(model, encoder_ckpt_path):
     ckpt = torch.load(encoder_ckpt_path, map_location="cpu")
     state_dict = ckpt.get("encoder_state_dict", None) if isinstance(ckpt, dict) else None
     if state_dict is None and isinstance(ckpt, dict):
@@ -173,7 +170,61 @@ def load_encoder_weights(model: FinetuneMSDNet, encoder_ckpt_path: str | Path):
     print(f"[INFO] encoder load unexpected keys: {len(unexpected)}")
 
 
-def build_optimizer(cfg, model: nn.Module):
+def load_fixed_center(center_ckpt_path):
+    ckpt = torch.load(center_ckpt_path, map_location="cpu")
+    if not isinstance(ckpt, dict) or "center_c" not in ckpt:
+        raise ValueError(f"center_c not found in checkpoint: {center_ckpt_path}")
+    center_c = ckpt["center_c"]
+    if not torch.is_tensor(center_c):
+        center_c = torch.tensor(center_c)
+    return center_c.float()
+
+
+@torch.no_grad()
+def compute_center_from_loader(model, loader, device, center_mode="target_noise"):
+    model.eval()
+    z_list = []
+    for batch in loader:
+        x, y = parse_finetune_batch(batch)
+        x = x.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True)
+        z, _ = model(x)
+        if center_mode == "target_all":
+            z_list.append(z.detach().cpu())
+        elif center_mode == "target_noise":
+            mask = (y == 0)
+            if mask.sum().item() > 0:
+                z_list.append(z[mask].detach().cpu())
+        else:
+            raise ValueError(f"Unsupported center_mode for recompute: {center_mode}")
+    if len(z_list) == 0:
+        raise ValueError(f"No samples found to compute center_c for center_mode='{center_mode}'.")
+    c = torch.cat(z_list, dim=0).mean(dim=0)
+    eps = 1e-6
+    c[(c.abs() < eps) & (c < 0)] = -eps
+    c[(c.abs() < eps) & (c > 0)] = eps
+    return c
+
+
+def resolve_center(cfg, model, train_loader, device, run_root, base_experiment):
+    center_mode = str(cfg_get(cfg, "train", "center_mode", default="target_noise")).lower()
+    center_info = {"center_mode": center_mode}
+    if center_mode == "fixed":
+        fixed_center_path = cfg_get(cfg, "train", "fixed_center_checkpoint_path", default=None)
+        if fixed_center_path is None:
+            fixed_center_path = run_root / "pretrain" / base_experiment / "best.pt"
+        center_c = load_fixed_center(fixed_center_path).to(device)
+        center_info["center_source"] = "checkpoint"
+        center_info["center_checkpoint_path"] = str(fixed_center_path)
+        return center_c, center_info
+    if center_mode in {"target_all", "target_noise"}:
+        center_c = compute_center_from_loader(model, train_loader, device, center_mode=center_mode).to(device)
+        center_info["center_source"] = "train_loader_recomputed"
+        return center_c, center_info
+    raise ValueError(f"Unsupported train.center_mode: {center_mode}")
+
+
+def build_optimizer(cfg, model):
     lr = float(cfg_get(cfg, "train", "lr", default=1e-4))
     wd = float(cfg_get(cfg, "train", "weight_decay", default=1e-5))
     name = str(cfg_get(cfg, "train", "optimizer", default="adamw")).lower()
@@ -201,28 +252,6 @@ def save_checkpoint(path, model, optimizer, epoch, best_metric, center_c, cfg):
     if center_c is not None:
         ckpt["center_c"] = center_c.detach().cpu()
     torch.save(ckpt, path)
-
-
-@torch.no_grad()
-def compute_center_from_loader(model, loader, device):
-    model.eval()
-    z_list = []
-    for batch in loader:
-        x, y = parse_finetune_batch(batch)
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
-        mask = (y == 0)
-        if mask.sum().item() == 0:
-            continue
-        z, _ = model(x)
-        z_list.append(z[mask].detach().cpu())
-    if len(z_list) == 0:
-        raise ValueError("No normal samples found to compute center_c.")
-    c = torch.cat(z_list, dim=0).mean(dim=0)
-    eps = 1e-6
-    c[(c.abs() < eps) & (c < 0)] = -eps
-    c[(c.abs() < eps) & (c > 0)] = eps
-    return c
 
 
 def train_one_epoch(model, loader, optimizer, device, center_c, cls_loss_weight, anomaly_loss_weight, scaler, use_amp, grad_clip=None):
@@ -268,8 +297,7 @@ def evaluate(model, loader, device, center_c, cls_loss_weight, anomaly_loss_weig
         y = y.to(device, non_blocking=True).float().view(-1)
         z, logit = model(x)
         logit = logit.view(-1)
-        prob = torch.sigmoid(logit)
-        pred = (prob >= 0.5).float()
+        pred = (torch.sigmoid(logit) >= 0.5).float()
         cls_loss = F.binary_cross_entropy_with_logits(logit, y)
         dist = torch.sum((z - center_c.unsqueeze(0)) ** 2, dim=1)
         anomaly_loss = torch.where(y < 0.5, dist, 1.0 / (dist + 1e-6)).mean()
@@ -327,17 +355,29 @@ def main():
     model = FinetuneMSDNet(cfg).to(device)
     print(f"[INFO] model params: {count_parameters(model):,}")
 
+    use_pretrained_encoder = bool(cfg_get(cfg, "train", "use_pretrained_encoder", default=True))
     encoder_ckpt = cfg_get(cfg, "train", "pretrained_encoder_path", default=None)
     if encoder_ckpt is None:
         auto_ckpt = run_root / "pretrain" / base_experiment / "best_encoder.pt"
         if auto_ckpt.exists():
             encoder_ckpt = str(auto_ckpt)
 
+    print(f"[DEBUG] use_pretrained_encoder = {use_pretrained_encoder}")
     print(f"[DEBUG] pretrained_encoder_path = {encoder_ckpt}")
-    if encoder_ckpt:
-        load_encoder_weights(model, encoder_ckpt)
+
+    if use_pretrained_encoder:
+        if encoder_ckpt:
+            load_encoder_weights(model, encoder_ckpt)
+        else:
+            print("[WARN] use_pretrained_encoder=True but no checkpoint found. Starting from random initialization.")
     else:
-        print("[WARN] No pretrained encoder checkpoint found. Finetune starts from random initialization.")
+        print("[INFO] use_pretrained_encoder=False -> random initialization")
+
+    center_c, center_info = resolve_center(cfg, model, train_loader, device, run_root, base_experiment)
+    with open(save_dir / "center_info.json", "w", encoding="utf-8") as f:
+        json.dump(center_info, f, indent=2, ensure_ascii=False)
+    print(f"[INFO] center_c shape: {tuple(center_c.shape)}")
+    print(f"[INFO] center info: {json.dumps(center_info, indent=2, ensure_ascii=False)}")
 
     optimizer = build_optimizer(cfg, model)
     epochs = int(cfg_get(cfg, "train", "epochs", default=100))
@@ -346,17 +386,20 @@ def main():
     cls_loss_weight, anomaly_loss_weight = build_loss_weights(cfg)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
-    center_c = compute_center_from_loader(model, train_loader, device).to(device)
-    print(f"[INFO] center_c shape: {tuple(center_c.shape)}")
-
     best_metric = -math.inf
     best_epoch = -1
     train_loss_history = []
     val_loss_history = []
+    center_update = str(cfg_get(cfg, "train", "center_update", default="once")).lower()
+    center_mode = str(cfg_get(cfg, "train", "center_mode", default="target_noise")).lower()
     start_time = time.time()
 
     for epoch in range(1, epochs + 1):
         epoch_start = time.time()
+        if epoch > 1 and center_mode in {"target_all", "target_noise"} and center_update == "every_epoch":
+            center_c = compute_center_from_loader(model, train_loader, device, center_mode=center_mode).to(device)
+            print(f"[INFO] recomputed center_c at epoch {epoch}")
+
         train_metrics = train_one_epoch(model, train_loader, optimizer, device, center_c, cls_loss_weight, anomaly_loss_weight, scaler, use_amp, grad_clip)
         val_metrics = evaluate(model, val_loader, device, center_c, cls_loss_weight, anomaly_loss_weight)
 

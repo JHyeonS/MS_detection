@@ -1,0 +1,31 @@
+data:
+  experiment: stage1_pohang_only__train_stage_label_eff_pretrained_dynamic_center_frac0p1
+  normalize: robust
+  num_workers: 4
+  pin_memory: true
+  preprocess:
+    bandpass: true
+    bandpass_high: 50
+    bandpass_low: 3
+    detrend: true
+    sampling_rate: 1000
+  split_dir: ./data/0312/metadata/experiments/stage1_pohang_only
+device:
+  ids:
+  - 0
+  type: cuda
+model:
+  cae:
+    final_act: identity
+    mirror_decoder: true
+  encoder:
+    act: relu
+    base_channels: 32
+    dropout: 0.0
+    in_channels: 1
+    latent_dim: 512
+    norm: bn
+    num_layers: 6
+paths:
+  run_root: ./runs/stage_label_efficiency_pretrained_dynamic_center/base_1
+seed: 42

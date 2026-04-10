@@ -47,7 +47,7 @@ fi
 
 mkdir -p "${OUT_DIR}"
 
-python src/analysis/tsne_splits.py \
+python src/analysis/tsne_splits_with_metrics.py \
   --base_cfg "${BASE_CFG}" \
   --stage_cfg "${STAGE_CFG}" \
   --ckpt "${CKPT}" \
@@ -55,6 +55,20 @@ python src/analysis/tsne_splits.py \
   --max_per_group 200 \
   --tsne_perplexity 30 \
   --pca_dim 50 \
+  --metric_pca_dim 50 \
   --seed 42
 
-echo "[DONE] TSNE finished"
+# metric PCA 없이 돌리고 싶으면 아래처럼 사용
+# python src/analysis/tsne_splits.py \
+#   --base_cfg "${BASE_CFG}" \
+#   --stage_cfg "${STAGE_CFG}" \
+#   --ckpt "${CKPT}" \
+#   --out_dir "${OUT_DIR}" \
+#   --max_per_group 200 \
+#   --tsne_perplexity 30 \
+#   --pca_dim 50 \
+#   --metric_pca_dim 50 \
+#   --disable_metric_pca \
+#   --seed 42
+
+echo "[DONE] TSNE + clustering metrics finished"
