@@ -107,9 +107,9 @@ def count_parameters(model):
 def resolve_finetune_dataloaders(cfg):
     errors = []
     candidates = [
-        ("src.dataloader.finetune_dataloader", "build_finetune_dataloaders"),
-        ("src.dataloader.finetune_dataloader", "build_finetune_dataloader"),
-        ("src.dataloader.finetune_dataloader", "build_train_val_dataloaders"),
+        ("src.detection.dataloader.finetune_dataloader", "build_finetune_dataloaders"),
+        ("src.detection.dataloader.finetune_dataloader", "build_finetune_dataloader"),
+        ("src.detection.dataloader.finetune_dataloader", "build_train_val_dataloaders"),
     ]
     for module_name, fn_name in candidates:
         try:
