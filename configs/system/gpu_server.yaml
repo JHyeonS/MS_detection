@@ -1,0 +1,6 @@
+paths:
+  repo_root: /home/ted1204/MS_Detection
+  run_root: /home/ted1204/MS_Detection/runs
+  checkpoint_root: /home/ted1204/MS_Detection/checkpoints
+  npy_root: /home/ted1204/MS_Detection/data
+  log_root: /home/ted1204/MS_Detection/logs
