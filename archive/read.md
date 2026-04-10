@@ -26,7 +26,7 @@ DAS 기반 microseismic detection을 위한 연구 코드 구조이다.
 
 ```text
 MS_Detection/
-├─ config/
+├─ configs/train/
 │  ├─ base.yaml
 │  ├─ pretrain.yaml
 │  ├─ train.yaml

@@ -15,18 +15,18 @@ export PYTHONPATH=.
 export LD_LIBRARY_PATH=/home/anaconda3/lib:${LD_LIBRARY_PATH:-}
 
 BASE_CONFIGS=(
-  "config/base_pohang.yaml"\
-  "config/base_utah_2019.yaml"\
-  "config/base_utah_2023.yaml"\
+  "configs/train/base_pohang.yaml"\
+  "configs/train/base_utah_2019.yaml"\
+  "configs/train/base_utah_2023.yaml"\
 )
 
 TRAIN_CONFIGS=(
-  "config/train.yaml"\
+  "configs/train/train.yaml"\
 )
 
-PRETRAIN_STAGE_CFG="config/pretrain_reconst.yaml"
-TEST_STAGE_CFG="config/test.yaml"
-ANALYZE_STAGE_CFG="config/analyze.yaml"
+PRETRAIN_STAGE_CFG="configs/train/pretrain_reconst.yaml"
+TEST_STAGE_CFG="configs/train/test.yaml"
+ANALYZE_STAGE_CFG="configs/train/analyze.yaml"
 
 if [[ "${MODE}" != "pretrain" && "${MODE}" != "finetune" && "${MODE}" != "test" && "${MODE}" != "analyze" && "${MODE}" != "full" ]]; then
   echo "[ERROR] invalid MODE: ${MODE}"
@@ -54,9 +54,9 @@ cleanup() {
   echo "[WARN] interrupt received, killing child workers..."
   jobs -pr | xargs -r kill || true
   wait || true
-  pkill -f "src/training/trainer_pretrain.py" || true
-  pkill -f "src/training/trainer_finetune.py" || true
-  pkill -f "src/training/trainer_test.py" || true
+  pkill -f "src/detection/training/trainer_pretrain.py" || true
+  pkill -f "src/detection/training/trainer_finetune.py" || true
+  pkill -f "src/detection/training/trainer_test.py" || true
   pkill -f "src/analysis/analyze.py" || true
   exit 130
 }
@@ -76,7 +76,7 @@ run_pretrain_job() {
     echo "stage_cfg=${PRETRAIN_STAGE_CFG}"
     echo "============================================================"
   } | tee -a "${log_file}"
-  CUDA_VISIBLE_DEVICES="${gpu}" python src/training/trainer_pretrain.py \
+  CUDA_VISIBLE_DEVICES="${gpu}" python -m src.detection.training.trainer_pretrain \
     --base_cfg "${base_cfg}" \
     --stage_cfg "${PRETRAIN_STAGE_CFG}" >> "${log_file}" 2>&1
 }
@@ -115,7 +115,7 @@ run_finetune_job() {
     echo "exp_suffix=${exp_suffix}"
     echo "============================================================"
   } | tee -a "${log_file}"
-  CUDA_VISIBLE_DEVICES="${gpu}" python src/training/trainer_finetune.py \
+  CUDA_VISIBLE_DEVICES="${gpu}" python -m src.detection.training.trainer_finetune \
     --base_cfg "${base_cfg}" \
     --stage_cfg "${train_cfg}" \
     --exp_suffix "${exp_suffix}" >> "${log_file}" 2>&1
@@ -159,7 +159,7 @@ run_test_job() {
     echo "============================================================"
   } | tee -a "${log_file}"
   make_suffix_base_cfg "${base_cfg}" "${exp_suffix}" "${test_base_cfg}" >> "${log_file}" 2>&1
-  CUDA_VISIBLE_DEVICES="${gpu}" python src/training/trainer_test.py \
+  CUDA_VISIBLE_DEVICES="${gpu}" python -m src.detection.training.trainer_test \
     --base_cfg "${test_base_cfg}" \
     --stage_cfg "${TEST_STAGE_CFG}" >> "${log_file}" 2>&1
 }

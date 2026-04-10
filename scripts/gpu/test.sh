@@ -4,9 +4,9 @@ set -euo pipefail
 export PYTHONPATH=.
 export MPLBACKEND=Agg
 
-BASE_CFG="${1:-config/base_reconst.yaml}"
-STAGE_CFG="${2:-config/test.yaml}"
+BASE_CFG="${1:-configs/train/base_reconst.yaml}"
+STAGE_CFG="${2:-configs/train/test.yaml}"
 
-python src/training/trainer_test.py \
+python -m src.detection.training.trainer_test \
   --base_cfg "${BASE_CFG}" \
   --stage_cfg "${STAGE_CFG}"

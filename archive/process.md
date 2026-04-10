@@ -202,7 +202,7 @@ Project directory:
 ```
 MS_Detection
 
-config/
+configs/train/
     base.yaml
     pretrain.yaml
     train.yaml

@@ -134,7 +134,7 @@ MS_Detection/
 Located in:
 
 
-config/
+configs/train/
 
 
 Files:

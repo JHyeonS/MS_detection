@@ -49,7 +49,7 @@ from sklearn.metrics import davies_bouldin_score, silhouette_score
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
-from src.dataloader.finetune_dataloader import (
+from src.detection.dataloader.finetune_dataloader import (
     build_finetune_dataloader,
     build_finetune_dataloaders,
 )

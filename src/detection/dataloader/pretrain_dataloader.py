@@ -2,8 +2,8 @@ from pathlib import Path
 
 from torch.utils.data import DataLoader
 
-from src.dataset.pretrain_dataset import PretrainDataset
-from src.dataset.transforms import build_transforms
+from src.detection.dataset.pretrain_dataset import PretrainDataset
+from src.detection.dataset.transforms import build_transforms
 
 
 def _cfg_get(cfg, *keys, default=None):

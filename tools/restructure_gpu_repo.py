@@ -9,7 +9,7 @@ Usage:
 
 Behavior:
 - Creates new Codex-friendly directory layout
-- Moves known source/config/script directories into new structure
+- Moves known source/configs/train/script directories into new structure
 - Backs up overwritten targets if needed
 - Does NOT touch runs/, logs/, outputs/, data/ etc.
 """

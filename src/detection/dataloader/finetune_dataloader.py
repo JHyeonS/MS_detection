@@ -4,8 +4,8 @@ import pandas as pd
 
 from torch.utils.data import DataLoader
 
-from src.dataset.finetune_dataset import FinetuneDataset
-from src.dataset.transforms import build_transforms
+from src.detection.dataset.finetune_dataset import FinetuneDataset
+from src.detection.dataset.transforms import build_transforms
 
 
 def _cfg_get(cfg, *keys, default=None):

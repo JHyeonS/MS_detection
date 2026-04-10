@@ -526,8 +526,8 @@ def analyze_score_threshold(
 # =========================================================
 def main():
     parser = argparse.ArgumentParser(description="Analyze DAS microseismic test results")
-    parser.add_argument("--base_cfg", type=str, default="config/base.yaml")
-    parser.add_argument("--stage_cfg", type=str, default="config/analyze.yaml")
+    parser.add_argument("--base_cfg", type=str, default="configs/train/base.yaml")
+    parser.add_argument("--stage_cfg", type=str, default="configs/train/analyze.yaml")
     args = parser.parse_args()
 
     cfg = load_config(args.base_cfg, args.stage_cfg)

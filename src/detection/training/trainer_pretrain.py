@@ -19,9 +19,9 @@ import yaml
 
 from src.models.pretrain_reconstruction import CAE
 from src.models.pretrain_contrastive import ContrastivePretrainModel
-from src.utils.device import setup_device_from_cfg
-from src.utils.visualize import save_loss_curve, save_train_history_csv
-from src.utils.config_io import (
+from src.detection.utils.device import setup_device_from_cfg
+from src.detection.utils.visualize import save_loss_curve, save_train_history_csv
+from src.detection.utils.config_io import (
     save_merged_config,
     copy_config_snapshots,
     save_run_metadata,
@@ -118,7 +118,7 @@ def normalize_pretrain_mode(mode: str) -> str:
 
 
 def resolve_pretrain_dataloader(cfg, mode: str):
-    from src.dataloader.pretrain_dataloader import build_pretrain_dataloader
+    from src.detection.dataloader.pretrain_dataloader import build_pretrain_dataloader
     return build_pretrain_dataloader(cfg)
 
 

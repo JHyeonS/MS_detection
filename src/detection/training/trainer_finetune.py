@@ -17,9 +17,9 @@ import torch.nn.functional as F
 import yaml
 
 from src.models.cnn_encoder import cnn_encoder
-from src.utils.visualize import save_loss_curve, save_train_history_csv
-from src.utils.device import setup_device_from_cfg
-from src.utils.config_io import save_merged_config, copy_config_snapshots, save_run_metadata
+from src.detection.utils.visualize import save_loss_curve, save_train_history_csv
+from src.detection.utils.device import setup_device_from_cfg
+from src.detection.utils.config_io import save_merged_config, copy_config_snapshots, save_run_metadata
 
 
 def _to_plain_dict(obj):

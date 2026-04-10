@@ -15,13 +15,13 @@ import torch.nn as nn
 import yaml
 
 from src.models.cnn_encoder import cnn_encoder
-from src.utils.config_io import (
+from src.detection.utils.config_io import (
     ensure_dir,
     save_merged_config,
     copy_config_snapshots,
     save_run_metadata,
 )
-from src.utils.device import setup_device_from_cfg
+from src.detection.utils.device import setup_device_from_cfg
 
 
 # =========================================================
@@ -94,7 +94,7 @@ def resolve_val_test_dataloaders(cfg):
     errors = []
 
     try:
-        from src.dataloader.finetune_dataloader import build_finetune_dataloaders
+        from src.detection.dataloader.finetune_dataloader import build_finetune_dataloaders
         out = build_finetune_dataloaders(cfg)
         if isinstance(out, tuple):
             if len(out) >= 3:
@@ -106,7 +106,7 @@ def resolve_val_test_dataloaders(cfg):
         errors.append(f"build_finetune_dataloaders: {repr(e)}")
 
     try:
-        from src.dataloader.test_dataloader import build_test_dataloader
+        from src.detection.dataloader.test_dataloader import build_test_dataloader
         test_loader = build_test_dataloader(cfg)
         return None, test_loader
     except Exception as e:

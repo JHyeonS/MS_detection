@@ -45,7 +45,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
 from src.models.cnn_encoder import cnn_encoder
-from src.dataloader.finetune_dataloader import build_finetune_dataloaders, build_finetune_dataloader
+from src.detection.dataloader.finetune_dataloader import build_finetune_dataloaders, build_finetune_dataloader
 
 
 # =========================================================
