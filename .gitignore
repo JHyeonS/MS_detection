@@ -28,5 +28,11 @@ datasets/
 *.sgy
 *.segy
 
+
+*.log
+**/*.log
+*.err
+**/*.err
+
 .DS_Store
 Thumbs.db
