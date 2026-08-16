@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PYTHONPATH=.
+export PYTHONUNBUFFERED="${PYTHONUNBUFFERED:-1}"
+export MPLBACKEND=Agg
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export NUMEXPR_NUM_THREADS="${NUMEXPR_NUM_THREADS:-1}"
+
+KIND="${METADATA_V2_CROSS_KIND:-logenv}"
+GPUS="${METADATA_V2_CROSS_GPUS:-0}"
+FRACTIONS="${METADATA_V2_CROSS_FRACTIONS:-0.05,0.10,0.25,0.50}"
+TASKS="${METADATA_V2_CROSS_TASKS:-}"
+ROOT_PREFIX="${METADATA_V2_RUN_ROOT_PREFIX:-runs/metadata_v2_safe_rerun_v1}"
+
+case "${KIND}" in
+  logenv)
+    DATASET="visualbest_filter_logenv_rms_fs1000_rms0p15_lp50_log1_sm1x0p5"
+    SOURCE_ROOT="${ROOT_PREFIX}/logenv_site_main_pre50_v2"
+    RUN_ROOT="${METADATA_V2_CROSS_RUN_ROOT:-${ROOT_PREFIX}/logenv_cross_site_reconst_swd_interval10_v1}"
+    LOG_ROOT="${METADATA_V2_CROSS_LOG_ROOT:-logs/metadata_v2_logenv_cross_site_reconst_swd_interval10_v1}"
+    ;;
+  filter_rms)
+    DATASET="visualbest_filter_rms_fs1000_rms0p15_lp50"
+    SOURCE_ROOT="${ROOT_PREFIX}/filter_rms_site_main_pre50_v2"
+    RUN_ROOT="${METADATA_V2_CROSS_RUN_ROOT:-${ROOT_PREFIX}/filter_rms_cross_site_reconst_swd_interval10_v1}"
+    LOG_ROOT="${METADATA_V2_CROSS_LOG_ROOT:-logs/metadata_v2_filter_rms_cross_site_reconst_swd_interval10_v1}"
+    if [[ -z "${TASKS}" ]]; then
+      # Utah 2023 cannot be a source until its filter_rms reconst pretrain exists.
+      TASKS="pohang|utah_2019,utah_2019|pohang,pohang|utah_2023,utah_2019|utah_2023"
+    fi
+    ;;
+  *)
+    echo "[ERROR] unsupported METADATA_V2_CROSS_KIND=${KIND}" >&2
+    exit 1
+    ;;
+esac
+
+mkdir -p "${RUN_ROOT}" "${LOG_ROOT}"
+
+echo "[$(date '+%F %T')] [CONFIG] kind=${KIND} gpus=${GPUS} fractions=${FRACTIONS} tasks=${TASKS:-all}" | tee -a "${LOG_ROOT}/launcher.log"
+
+CROSS_RECONST_GPUS="${GPUS}" \
+CROSS_RECONST_DATASET="${DATASET}" \
+CROSS_RECONST_SOURCE_PRETRAIN_ROOT="${SOURCE_ROOT}" \
+CROSS_RECONST_RUN_ROOT="${RUN_ROOT}" \
+CROSS_RECONST_LOG_ROOT="${LOG_ROOT}" \
+CROSS_RECONST_FRACTIONS="${FRACTIONS}" \
+CROSS_RECONST_TASKS="${TASKS}" \
+CROSS_RECONST_CACHE_MODE="${METADATA_V2_CROSS_CACHE_MODE:-ram}" \
+CROSS_RECONST_NUM_WORKERS="${METADATA_V2_CROSS_NUM_WORKERS:-1}" \
+CROSS_RECONST_PERSISTENT_WORKERS="${METADATA_V2_CROSS_PERSISTENT_WORKERS:-false}" \
+CROSS_RECONST_PREFETCH_FACTOR="${METADATA_V2_CROSS_PREFETCH_FACTOR:-2}" \
+CROSS_RECONST_LOG_CENTER_DIAGNOSTICS="${METADATA_V2_CROSS_LOG_CENTER_DIAGNOSTICS:-true}" \
+CROSS_RECONST_LOG_WASSERSTEIN_DIAGNOSTICS="${METADATA_V2_CROSS_LOG_WASSERSTEIN_DIAGNOSTICS:-true}" \
+CROSS_RECONST_CENTER_DIAGNOSTICS_INTERVAL="${METADATA_V2_CROSS_CENTER_DIAGNOSTICS_INTERVAL:-10}" \
+CROSS_RECONST_WASSERSTEIN_NUM_PROJECTIONS="${METADATA_V2_CROSS_WASSERSTEIN_NUM_PROJECTIONS:-32}" \
+CROSS_RECONST_WASSERSTEIN_NUM_QUANTILES="${METADATA_V2_CROSS_WASSERSTEIN_NUM_QUANTILES:-128}" \
+  bash scripts/gpu/run_logenv_cross_site_reconst_gpu24.sh

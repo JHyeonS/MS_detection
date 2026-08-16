@@ -1,6 +1,6 @@
 test:
   batch_size: 16
-  num_workers: 4
+  num_workers: 1
   pin_memory: true
 
   # optional
@@ -14,7 +14,8 @@ test:
 
 data:
   test_csv: "test.csv"
-
   normalize: "robust"
   add_channel_dim: true
   return_meta: true
+  num_workers: 1
+  pin_memory: true

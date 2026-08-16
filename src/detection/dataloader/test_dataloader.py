@@ -18,6 +18,14 @@ def _cfg_get(cfg, *keys, default=None):
     return cur
 
 
+def _num_workers(cfg) -> int:
+    return int(_cfg_get(cfg, "data", "num_workers", default=_cfg_get(cfg, "test", "num_workers", default=4)))
+
+
+def _pin_memory(cfg) -> bool:
+    return bool(_cfg_get(cfg, "data", "pin_memory", default=_cfg_get(cfg, "test", "pin_memory", default=True)))
+
+
 def build_test_dataloader(cfg, csv_path=None):
     split_dir = Path(_cfg_get(cfg, "data", "split_dir"))
     if csv_path is None:
@@ -34,8 +42,8 @@ def build_test_dataloader(cfg, csv_path=None):
     )
 
     batch_size = int(_cfg_get(cfg, "test", "batch_size", default=16))
-    num_workers = int(_cfg_get(cfg, "data", "num_workers", default=4))
-    pin_memory = bool(_cfg_get(cfg, "data", "pin_memory", default=True))
+    num_workers = _num_workers(cfg)
+    pin_memory = _pin_memory(cfg)
 
     return DataLoader(
         dataset,

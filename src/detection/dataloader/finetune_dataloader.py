@@ -20,6 +20,28 @@ def _cfg_get(cfg, *keys, default=None):
     return cur
 
 
+def _num_workers(cfg, section: str) -> int:
+    return int(
+        _cfg_get(
+            cfg,
+            "data",
+            "num_workers",
+            default=_cfg_get(cfg, section, "num_workers", default=4),
+        )
+    )
+
+
+def _pin_memory(cfg, section: str) -> bool:
+    return bool(
+        _cfg_get(
+            cfg,
+            "data",
+            "pin_memory",
+            default=_cfg_get(cfg, section, "pin_memory", default=True),
+        )
+    )
+
+
 def _split_dir(cfg):
     return Path(_cfg_get(cfg, "data", "split_dir"))
 
@@ -134,6 +156,7 @@ def build_finetune_dataloader(cfg, csv_path, split="train"):
         add_channel_dim=bool(_cfg_get(cfg, "data", "add_channel_dim", default=True)),
         return_meta=bool(_cfg_get(cfg, "data", "return_meta", default=False)),
         label_map=label_map,
+        cache_mode=_cfg_get(cfg, "data", "cache_mode", default="none"),
     )
 
     dataset.label_efficiency_info = label_efficiency_info
@@ -149,8 +172,21 @@ def build_finetune_dataloader(cfg, csv_path, split="train"):
         shuffle = False
         drop_last = False
 
-    num_workers = int(_cfg_get(cfg, "data", "num_workers", default=4))
-    pin_memory = bool(_cfg_get(cfg, "data", "pin_memory", default=True))
+    section = "train" if split == "train" else "test"
+    num_workers = _num_workers(cfg, section=section)
+    pin_memory = _pin_memory(cfg, section=section)
+    persistent_workers = bool(_cfg_get(cfg, "data", "persistent_workers", default=(num_workers > 0)))
+    prefetch_factor = _cfg_get(cfg, "data", "prefetch_factor", default=2)
+
+    if split == "train" and drop_last and len(dataset) < batch_size:
+        # Label-efficiency experiments can intentionally use very small train sets.
+        # Dropping the only partial batch would make the loader empty.
+        drop_last = False
+
+    loader_kwargs = {}
+    if num_workers > 0:
+        loader_kwargs["persistent_workers"] = persistent_workers
+        loader_kwargs["prefetch_factor"] = int(prefetch_factor)
 
     return DataLoader(
         dataset,
@@ -159,6 +195,7 @@ def build_finetune_dataloader(cfg, csv_path, split="train"):
         num_workers=num_workers,
         pin_memory=pin_memory,
         drop_last=drop_last,
+        **loader_kwargs,
     )
 
 

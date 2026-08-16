@@ -77,6 +77,11 @@ def resolve_visible_gpu_ids(cfg: Any) -> List[int]:
     return [0]
 
 
+def _has_visible_gpu_env() -> bool:
+    value = os.environ.get("CUDA_VISIBLE_DEVICES")
+    return value is not None and value.strip() != ""
+
+
 def setup_device_from_cfg(cfg: Any, verbose: bool = True) -> torch.device:
     '''
     Setup CUDA_VISIBLE_DEVICES from config and return torch.device.
@@ -102,7 +107,8 @@ def setup_device_from_cfg(cfg: Any, verbose: bool = True) -> torch.device:
         gpu_ids = resolve_visible_gpu_ids(cfg)
 
         if device_type == "cuda" and torch.cuda.is_available():
-            os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, gpu_ids))
+            if not _has_visible_gpu_env():
+                os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, gpu_ids))
             device = torch.device("cuda")
         else:
             device = torch.device("cpu")
@@ -111,7 +117,7 @@ def setup_device_from_cfg(cfg: Any, verbose: bool = True) -> torch.device:
     # device: "cuda" / "cuda:0" / "cpu"
     elif isinstance(device_cfg, str):
         if device_cfg.startswith("cuda"):
-            if ":" in device_cfg:
+            if ":" in device_cfg and not _has_visible_gpu_env():
                 try:
                     gpu_id = int(device_cfg.split(":")[1])
                     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
@@ -131,5 +137,7 @@ def setup_device_from_cfg(cfg: Any, verbose: bool = True) -> torch.device:
     if verbose:
         print(f"[INFO] device: {device}")
         print(f"[INFO] visible GPUs: {os.environ.get('CUDA_VISIBLE_DEVICES', 'ALL')}")
+        if _has_visible_gpu_env():
+            print("[INFO] honoring pre-set CUDA_VISIBLE_DEVICES from launcher/environment")
 
     return device

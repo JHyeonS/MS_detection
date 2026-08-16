@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Usage:
 # bash scripts/run_tsne.sh <GPU_ID> <EXP_PATH>
@@ -18,6 +19,15 @@ fi
 # TSNE는 CPU로 돌릴 거라 GPU 숨김
 export CUDA_VISIBLE_DEVICES=""
 export PYTHONPATH=.
+export MPLBACKEND=Agg
+
+if [[ -z "${PYTHON_BIN:-}" ]]; then
+  if [[ -x "/home/anaconda3/bin/python3.9" ]]; then
+    PYTHON_BIN="/home/anaconda3/bin/python3.9"
+  else
+    PYTHON_BIN="python3"
+  fi
+fi
 
 BASE_CFG=${EXP_PATH}/config_snapshot/base_config.yaml
 STAGE_CFG=${EXP_PATH}/config_snapshot/stage_config.yaml
@@ -47,7 +57,7 @@ fi
 
 mkdir -p "${OUT_DIR}"
 
-python src/analysis/tsne_splits.py \
+"${PYTHON_BIN}" -m src.detection.analysis.tsne_splits \
   --base_cfg "${BASE_CFG}" \
   --stage_cfg "${STAGE_CFG}" \
   --ckpt "${CKPT}" \

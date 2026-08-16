@@ -38,11 +38,19 @@ def build_pretrain_dataloader(cfg, csv_path=None, split="train"):
         preprocess=_cfg_get(cfg, "data", "preprocess", default={}),
         add_channel_dim=bool(_cfg_get(cfg, "data", "add_channel_dim", default=True)),
         allowed_labels=_cfg_get(cfg, "data", "allowed_labels", default=None),
+        cache_mode=_cfg_get(cfg, "data", "cache_mode", default="none"),
     )
 
     batch_size = int(_cfg_get(cfg, "pretrain", "batch_size", default=16))
     num_workers = int(_cfg_get(cfg, "data", "num_workers", default=4))
     pin_memory = bool(_cfg_get(cfg, "data", "pin_memory", default=True))
+    persistent_workers = bool(_cfg_get(cfg, "data", "persistent_workers", default=(num_workers > 0)))
+    prefetch_factor = _cfg_get(cfg, "data", "prefetch_factor", default=2)
+
+    loader_kwargs = {}
+    if num_workers > 0:
+        loader_kwargs["persistent_workers"] = persistent_workers
+        loader_kwargs["prefetch_factor"] = int(prefetch_factor)
 
     loader = DataLoader(
         dataset,
@@ -51,6 +59,7 @@ def build_pretrain_dataloader(cfg, csv_path=None, split="train"):
         num_workers=num_workers,
         pin_memory=pin_memory,
         drop_last=(split == "train"),
+        **loader_kwargs,
     )
     return loader
 

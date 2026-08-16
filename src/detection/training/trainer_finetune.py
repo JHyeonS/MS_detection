@@ -14,12 +14,19 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import yaml
 
 from src.models.cnn_encoder import cnn_encoder
-from src.detection.utils.visualize import save_loss_curve, save_train_history_csv
+from src.detection.utils.visualize import save_loss_curve, save_metrics_history_csv
 from src.detection.utils.device import setup_device_from_cfg
-from src.detection.utils.config_io import save_merged_config, copy_config_snapshots, save_run_metadata
+from src.detection.utils.process_title import set_process_title
+from src.detection.utils.config_io import (
+    cfg_get,
+    copy_config_snapshots,
+    ensure_dir,
+    load_config,
+    save_merged_config,
+    save_run_metadata,
+)
 
 
 def _to_plain_dict(obj):
@@ -29,75 +36,11 @@ def _to_plain_dict(obj):
         return [_to_plain_dict(v) for v in obj]
     return obj
 
-
-class AttrDict(dict):
-    def __getattr__(self, item):
-        if item not in self:
-            raise AttributeError(item)
-        v = self.get(item)
-        if isinstance(v, dict) and not isinstance(v, AttrDict):
-            v = AttrDict(v)
-            self[item] = v
-        return v
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-
-def _to_attrdict(obj):
-    if isinstance(obj, dict):
-        return AttrDict({k: _to_attrdict(v) for k, v in obj.items()})
-    if isinstance(obj, list):
-        return [_to_attrdict(v) for v in obj]
-    return obj
-
-
-def _load_yaml(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def _deep_update(base, override):
-    out = dict(base)
-    for k, v in override.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_update(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
-def load_config(base_cfg_path, stage_cfg_path):
-    base_cfg = _load_yaml(base_cfg_path)
-    stage_cfg = _load_yaml(stage_cfg_path)
-    return _to_attrdict(_deep_update(base_cfg, stage_cfg))
-
-
-def cfg_get(cfg, *keys, default=None):
-    cur = cfg
-    for key in keys:
-        if cur is None:
-            return default
-        if isinstance(cur, dict):
-            if key not in cur:
-                return default
-            cur = cur[key]
-        else:
-            if not hasattr(cur, key):
-                return default
-            cur = getattr(cur, key)
-    return cur
-
-
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def ensure_dir(path):
-    Path(path).mkdir(parents=True, exist_ok=True)
 
 
 def count_parameters(model):
@@ -224,6 +167,143 @@ def resolve_center(cfg, model, train_loader, device, run_root, base_experiment):
     raise ValueError(f"Unsupported train.center_mode: {center_mode}")
 
 
+@torch.no_grad()
+def compute_center_diagnostics(model, loader, device, center_c, prefix: str):
+    if loader is None:
+        return {}
+    model.eval()
+    noise_dist = []
+    event_dist = []
+    for batch in loader:
+        x, y = parse_finetune_batch(batch)
+        x = x.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True).float().view(-1)
+        z, _ = model(x)
+        dist = torch.sum((z - center_c.unsqueeze(0)) ** 2, dim=1)
+        noise_mask = y < 0.5
+        event_mask = y >= 0.5
+        if noise_mask.any():
+            noise_dist.append(dist[noise_mask].detach().cpu())
+        if event_mask.any():
+            event_dist.append(dist[event_mask].detach().cpu())
+
+    out = {}
+    if noise_dist:
+        values = torch.cat(noise_dist)
+        out[f"{prefix}_noise_count"] = int(values.numel())
+        out[f"{prefix}_noise_dist_mean"] = float(values.mean().item())
+        out[f"{prefix}_noise_dist_std"] = float(values.std(unbiased=False).item()) if values.numel() > 1 else 0.0
+    else:
+        out[f"{prefix}_noise_count"] = 0
+        out[f"{prefix}_noise_dist_mean"] = None
+        out[f"{prefix}_noise_dist_std"] = None
+
+    if event_dist:
+        values = torch.cat(event_dist)
+        out[f"{prefix}_event_count"] = int(values.numel())
+        out[f"{prefix}_event_dist_mean"] = float(values.mean().item())
+        out[f"{prefix}_event_dist_std"] = float(values.std(unbiased=False).item()) if values.numel() > 1 else 0.0
+    else:
+        out[f"{prefix}_event_count"] = 0
+        out[f"{prefix}_event_dist_mean"] = None
+        out[f"{prefix}_event_dist_std"] = None
+
+    noise_mean = out[f"{prefix}_noise_dist_mean"]
+    event_mean = out[f"{prefix}_event_dist_mean"]
+    out[f"{prefix}_dist_gap_event_minus_noise"] = (
+        float(event_mean - noise_mean) if noise_mean is not None and event_mean is not None else None
+    )
+    out[f"{prefix}_dist_ratio_event_over_noise"] = (
+        float(event_mean / max(noise_mean, 1e-12)) if noise_mean is not None and event_mean is not None else None
+    )
+    return out
+
+
+def _compute_quantile_wasserstein_1d(x: np.ndarray, y: np.ndarray, num_quantiles: int = 128) -> float | None:
+    if x.size == 0 or y.size == 0:
+        return None
+    q = np.linspace(0.0, 1.0, int(num_quantiles), dtype=np.float64)
+    xq = np.quantile(x, q)
+    yq = np.quantile(y, q)
+    return float(np.mean(np.abs(xq - yq)))
+
+
+def _compute_sliced_wasserstein(
+    x: np.ndarray,
+    y: np.ndarray,
+    num_projections: int = 32,
+    num_quantiles: int = 128,
+    seed: int = 42,
+) -> float | None:
+    if x.size == 0 or y.size == 0:
+        return None
+    if x.ndim != 2 or y.ndim != 2:
+        raise ValueError("Sliced Wasserstein expects 2D arrays: (n_samples, latent_dim).")
+
+    latent_dim = x.shape[1]
+    rng = np.random.default_rng(int(seed))
+    projections = rng.normal(size=(int(num_projections), latent_dim)).astype(np.float64)
+    projections /= np.clip(np.linalg.norm(projections, axis=1, keepdims=True), a_min=1e-12, a_max=None)
+
+    values = []
+    for proj in projections:
+        xp = x @ proj
+        yp = y @ proj
+        wd = _compute_quantile_wasserstein_1d(xp, yp, num_quantiles=num_quantiles)
+        if wd is not None:
+            values.append(wd)
+    if not values:
+        return None
+    return float(np.mean(values))
+
+
+@torch.no_grad()
+def compute_wasserstein_diagnostics(model, loader, device, prefix: str, cfg):
+    if loader is None:
+        return {}
+    model.eval()
+    noise_z = []
+    event_z = []
+    for batch in loader:
+        x, y = parse_finetune_batch(batch)
+        x = x.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True).float().view(-1)
+        z, _ = model(x)
+        z_np = z.detach().cpu().float().numpy()
+        y_np = y.detach().cpu().numpy()
+        noise_mask = y_np < 0.5
+        event_mask = y_np >= 0.5
+        if noise_mask.any():
+            noise_z.append(z_np[noise_mask])
+        if event_mask.any():
+            event_z.append(z_np[event_mask])
+
+    out = {}
+    num_projections = int(cfg_get(cfg, "train", "wasserstein_num_projections", default=32))
+    num_quantiles = int(cfg_get(cfg, "train", "wasserstein_num_quantiles", default=128))
+    seed = int(cfg_get(cfg, "train", "seed", default=42))
+    out[f"{prefix}_event_noise_swd_num_projections"] = num_projections
+    out[f"{prefix}_event_noise_swd_num_quantiles"] = num_quantiles
+    if not noise_z or not event_z:
+        out[f"{prefix}_event_noise_swd"] = None
+        return out
+
+    noise_z = np.concatenate(noise_z, axis=0)
+    event_z = np.concatenate(event_z, axis=0)
+    out[f"{prefix}_event_noise_swd"] = _compute_sliced_wasserstein(
+        event_z,
+        noise_z,
+        num_projections=num_projections,
+        num_quantiles=num_quantiles,
+        seed=seed,
+    )
+    out[f"{prefix}_event_latent_count"] = int(event_z.shape[0])
+    out[f"{prefix}_noise_latent_count"] = int(noise_z.shape[0])
+    out[f"{prefix}_event_latent_mean_norm"] = float(np.linalg.norm(event_z.mean(axis=0)))
+    out[f"{prefix}_noise_latent_mean_norm"] = float(np.linalg.norm(noise_z.mean(axis=0)))
+    return out
+
+
 def build_optimizer(cfg, model):
     lr = float(cfg_get(cfg, "train", "lr", default=1e-4))
     wd = float(cfg_get(cfg, "train", "weight_decay", default=1e-5))
@@ -241,6 +321,74 @@ def build_loss_weights(cfg):
     return float(cfg_get(cfg, "train", "cls_loss_weight", default=1.0)), float(cfg_get(cfg, "train", "anomaly_loss_weight", default=1.0))
 
 
+def build_classwise_loss_weights(cfg):
+    return {
+        "bce_pos": float(cfg_get(cfg, "train", "bce_pos_weight", default=1.0)),
+        "bce_neg": float(cfg_get(cfg, "train", "bce_neg_weight", default=1.0)),
+        "anomaly_pos": float(cfg_get(cfg, "train", "anomaly_pos_weight", default=1.0)),
+        "anomaly_neg": float(cfg_get(cfg, "train", "anomaly_neg_weight", default=1.0)),
+    }
+
+
+def _weighted_mean_by_label(values, y, pos_weight: float, neg_weight: float):
+    weights = torch.where(
+        y >= 0.5,
+        torch.full_like(y, float(pos_weight)),
+        torch.full_like(y, float(neg_weight)),
+    )
+    return (values * weights).sum() / weights.sum().clamp_min(1e-12)
+
+
+def compute_weighted_branch_losses(logit, y, z, center_c, classwise_weights):
+    cls_terms = F.binary_cross_entropy_with_logits(logit, y, reduction="none")
+    cls_loss = _weighted_mean_by_label(
+        cls_terms,
+        y,
+        pos_weight=classwise_weights["bce_pos"],
+        neg_weight=classwise_weights["bce_neg"],
+    )
+
+    dist = torch.sum((z - center_c.unsqueeze(0)) ** 2, dim=1)
+    anomaly_terms = torch.where(y < 0.5, dist, 1.0 / (dist + 1e-6))
+    anomaly_loss = _weighted_mean_by_label(
+        anomaly_terms,
+        y,
+        pos_weight=classwise_weights["anomaly_pos"],
+        neg_weight=classwise_weights["anomaly_neg"],
+    )
+    return cls_loss, anomaly_loss
+
+
+def compute_binary_metrics(y_true, y_pred):
+    y_true = np.asarray(y_true).astype(np.int64)
+    y_pred = np.asarray(y_pred).astype(np.int64)
+
+    tp = int(((y_true == 1) & (y_pred == 1)).sum())
+    tn = int(((y_true == 0) & (y_pred == 0)).sum())
+    fp = int(((y_true == 0) & (y_pred == 1)).sum())
+    fn = int(((y_true == 1) & (y_pred == 0)).sum())
+
+    acc = (tp + tn) / max(len(y_true), 1)
+    precision = tp / max(tp + fp, 1)
+    recall = tp / max(tp + fn, 1)
+    specificity = tn / max(tn + fp, 1)
+    balanced_acc = 0.5 * (recall + specificity)
+    f1 = 2 * precision * recall / max(precision + recall, 1e-12)
+
+    return {
+        "acc": float(acc),
+        "precision": float(precision),
+        "recall": float(recall),
+        "specificity": float(specificity),
+        "balanced_acc": float(balanced_acc),
+        "f1": float(f1),
+        "tp": tp,
+        "tn": tn,
+        "fp": fp,
+        "fn": fn,
+    }
+
+
 def save_checkpoint(path, model, optimizer, epoch, best_metric, center_c, cfg):
     ckpt = {
         "epoch": epoch,
@@ -254,7 +402,19 @@ def save_checkpoint(path, model, optimizer, epoch, best_metric, center_c, cfg):
     torch.save(ckpt, path)
 
 
-def train_one_epoch(model, loader, optimizer, device, center_c, cls_loss_weight, anomaly_loss_weight, scaler, use_amp, grad_clip=None):
+def train_one_epoch(
+    model,
+    loader,
+    optimizer,
+    device,
+    center_c,
+    cls_loss_weight,
+    anomaly_loss_weight,
+    classwise_weights,
+    scaler,
+    use_amp,
+    grad_clip=None,
+):
     model.train()
     total_loss = total_cls = total_anom = 0.0
     total_n = 0
@@ -266,9 +426,9 @@ def train_one_epoch(model, loader, optimizer, device, center_c, cls_loss_weight,
         with torch.amp.autocast("cuda", enabled=use_amp):
             z, logit = model(x)
             logit = logit.view(-1)
-            cls_loss = F.binary_cross_entropy_with_logits(logit, y)
-            dist = torch.sum((z - center_c.unsqueeze(0)) ** 2, dim=1)
-            anomaly_loss = torch.where(y < 0.5, dist, 1.0 / (dist + 1e-6)).mean()
+            cls_loss, anomaly_loss = compute_weighted_branch_losses(
+                logit, y, z, center_c, classwise_weights
+            )
             loss = cls_loss_weight * cls_loss + anomaly_loss_weight * anomaly_loss
         scaler.scale(loss).backward()
         if grad_clip is not None:
@@ -285,12 +445,14 @@ def train_one_epoch(model, loader, optimizer, device, center_c, cls_loss_weight,
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, center_c, cls_loss_weight, anomaly_loss_weight):
+def evaluate(model, loader, device, center_c, cls_loss_weight, anomaly_loss_weight, classwise_weights):
     if loader is None:
         return None
     model.eval()
     total_loss = total_cls = total_anom = 0.0
-    total_n = total_correct = 0
+    total_n = 0
+    y_true_all = []
+    y_pred_all = []
     for batch in loader:
         x, y = parse_finetune_batch(batch)
         x = x.to(device, non_blocking=True)
@@ -298,17 +460,45 @@ def evaluate(model, loader, device, center_c, cls_loss_weight, anomaly_loss_weig
         z, logit = model(x)
         logit = logit.view(-1)
         pred = (torch.sigmoid(logit) >= 0.5).float()
-        cls_loss = F.binary_cross_entropy_with_logits(logit, y)
-        dist = torch.sum((z - center_c.unsqueeze(0)) ** 2, dim=1)
-        anomaly_loss = torch.where(y < 0.5, dist, 1.0 / (dist + 1e-6)).mean()
+        cls_loss, anomaly_loss = compute_weighted_branch_losses(
+            logit, y, z, center_c, classwise_weights
+        )
         loss = cls_loss_weight * cls_loss + anomaly_loss_weight * anomaly_loss
         bs = x.size(0)
         total_loss += loss.item() * bs
         total_cls += cls_loss.item() * bs
         total_anom += anomaly_loss.item() * bs
-        total_correct += (pred == y).sum().item()
         total_n += bs
-    return {"loss": total_loss / max(total_n, 1), "cls_loss": total_cls / max(total_n, 1), "anomaly_loss": total_anom / max(total_n, 1), "acc": total_correct / max(total_n, 1)}
+        y_true_all.append(y.detach().cpu().numpy())
+        y_pred_all.append(pred.detach().cpu().numpy())
+
+    if y_true_all:
+        metrics = compute_binary_metrics(np.concatenate(y_true_all), np.concatenate(y_pred_all))
+    else:
+        metrics = compute_binary_metrics(np.array([], dtype=np.int64), np.array([], dtype=np.int64))
+
+    metrics.update(
+        {
+            "loss": total_loss / max(total_n, 1),
+            "cls_loss": total_cls / max(total_n, 1),
+            "anomaly_loss": total_anom / max(total_n, 1),
+        }
+    )
+    return metrics
+
+
+def monitor_value(metrics, monitor_name: str):
+    if metrics is None:
+        return None
+    if monitor_name not in metrics:
+        raise ValueError(f"Unsupported monitor '{monitor_name}'. Available keys: {sorted(metrics.keys())}")
+    return float(metrics[monitor_name])
+
+
+def is_improved(current: float, best: float, mode: str, min_delta: float = 0.0) -> bool:
+    if mode == "min":
+        return current < (best - min_delta)
+    return current > (best + min_delta)
 
 
 def main():
@@ -333,6 +523,8 @@ def main():
     copy_config_snapshots(base_cfg_path=args.base_cfg, stage_cfg_path=args.stage_cfg, save_dir=save_dir / "config_snapshot")
     save_run_metadata({"task": "finetune", "experiment": finetune_experiment, "base_experiment": base_experiment}, save_dir)
 
+    process_title = set_process_title("finetune")
+    print(f"[INFO] process_title: {process_title}")
     device = setup_device_from_cfg(cfg)
     print(f"[INFO] device: {device}")
     print(f"[INFO] save_dir: {save_dir}")
@@ -384,14 +576,38 @@ def main():
     use_amp = bool(cfg_get(cfg, "train", "use_amp", default=True)) and (device.type == "cuda")
     grad_clip = cfg_get(cfg, "train", "grad_clip", default=None)
     cls_loss_weight, anomaly_loss_weight = build_loss_weights(cfg)
+    classwise_weights = build_classwise_loss_weights(cfg)
+    print(f"[INFO] branch loss weights: {json.dumps(classwise_weights, sort_keys=True)}")
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
-    best_metric = -math.inf
+    monitor_name = str(cfg_get(cfg, "train", "monitor", default="loss")).lower()
+    monitor_mode = str(cfg_get(cfg, "train", "monitor_mode", default="min")).lower()
+    if monitor_mode not in {"min", "max"}:
+        raise ValueError(f"Unsupported train.monitor_mode: {monitor_mode}")
+
+    best_metric = math.inf if monitor_mode == "min" else -math.inf
     best_epoch = -1
-    train_loss_history = []
-    val_loss_history = []
+    history_rows = []
+    center_history_rows = []
     center_update = str(cfg_get(cfg, "train", "center_update", default="once")).lower()
     center_mode = str(cfg_get(cfg, "train", "center_mode", default="target_noise")).lower()
+    log_center_diagnostics = bool(cfg_get(cfg, "train", "log_center_diagnostics", default=False))
+    log_wasserstein_diagnostics = bool(cfg_get(cfg, "train", "log_wasserstein_diagnostics", default=False))
+    center_diagnostics_interval = int(cfg_get(cfg, "train", "center_diagnostics_interval", default=1))
+    if center_diagnostics_interval <= 0:
+        center_diagnostics_interval = 1
+    initial_center_c = center_c.detach().float().cpu().clone()
+    previous_epoch_center_c = None
+    early_stopping_patience = cfg_get(cfg, "train", "early_stopping_patience", default=None)
+    if early_stopping_patience is not None:
+        early_stopping_patience = int(early_stopping_patience)
+        if early_stopping_patience <= 0:
+            early_stopping_patience = None
+    early_stopping_min_delta = float(cfg_get(cfg, "train", "early_stopping_min_delta", default=0.0))
+    early_stopping_warmup_epochs = int(cfg_get(cfg, "train", "early_stopping_warmup_epochs", default=0))
+    epochs_without_improvement = 0
+    stopped_early = False
+    stop_reason = None
     start_time = time.time()
 
     for epoch in range(1, epochs + 1):
@@ -400,32 +616,165 @@ def main():
             center_c = compute_center_from_loader(model, train_loader, device, center_mode=center_mode).to(device)
             print(f"[INFO] recomputed center_c at epoch {epoch}")
 
-        train_metrics = train_one_epoch(model, train_loader, optimizer, device, center_c, cls_loss_weight, anomaly_loss_weight, scaler, use_amp, grad_clip)
-        val_metrics = evaluate(model, val_loader, device, center_c, cls_loss_weight, anomaly_loss_weight)
+        epoch_center_c = center_c.detach().float().cpu().clone()
+        should_log_center_diagnostics = (
+            log_center_diagnostics
+            and (epoch == 1 or epoch % center_diagnostics_interval == 0 or epoch == epochs)
+        )
+        center_row = None
+        if should_log_center_diagnostics:
+            center_row = {
+                "epoch": epoch,
+                "center_mode": center_mode,
+                "center_update": center_update,
+                "center_norm": float(torch.linalg.vector_norm(epoch_center_c).item()),
+                "center_delta_from_initial": float(torch.linalg.vector_norm(epoch_center_c - initial_center_c).item()),
+                "center_delta_from_previous_epoch": (
+                    0.0
+                    if previous_epoch_center_c is None
+                    else float(torch.linalg.vector_norm(epoch_center_c - previous_epoch_center_c).item())
+                ),
+            }
 
-        train_loss_history.append(train_metrics["loss"])
+        train_metrics = train_one_epoch(
+            model,
+            train_loader,
+            optimizer,
+            device,
+            center_c,
+            cls_loss_weight,
+            anomaly_loss_weight,
+            classwise_weights,
+            scaler,
+            use_amp,
+            grad_clip,
+        )
+        val_metrics = evaluate(
+            model,
+            val_loader,
+            device,
+            center_c,
+            cls_loss_weight,
+            anomaly_loss_weight,
+            classwise_weights,
+        )
+
+        if should_log_center_diagnostics and center_row is not None:
+            center_row.update(compute_center_diagnostics(model, train_loader, device, center_c, prefix="train"))
+            if val_loader is not None:
+                center_row.update(compute_center_diagnostics(model, val_loader, device, center_c, prefix="val"))
+            if log_wasserstein_diagnostics:
+                center_row.update(compute_wasserstein_diagnostics(model, train_loader, device, prefix="train", cfg=cfg))
+                if val_loader is not None:
+                    center_row.update(compute_wasserstein_diagnostics(model, val_loader, device, prefix="val", cfg=cfg))
+            center_history_rows.append(center_row)
+            save_metrics_history_csv(rows=center_history_rows, save_path=save_dir / "center_history.csv")
+            previous_epoch_center_c = epoch_center_c
+
+        row = {
+            "epoch": epoch,
+            "train_loss": train_metrics["loss"],
+            "train_cls_loss": train_metrics["cls_loss"],
+            "train_anomaly_loss": train_metrics["anomaly_loss"],
+            "elapsed_sec": round(elapsed := (time.time() - epoch_start), 4),
+        }
         if val_metrics is not None:
-            val_loss_history.append(val_metrics["loss"])
+            row.update(
+                {
+                    "val_loss": val_metrics["loss"],
+                    "val_cls_loss": val_metrics["cls_loss"],
+                    "val_anomaly_loss": val_metrics["anomaly_loss"],
+                    "val_acc": val_metrics["acc"],
+                    "val_precision": val_metrics["precision"],
+                    "val_recall": val_metrics["recall"],
+                    "val_specificity": val_metrics["specificity"],
+                    "val_balanced_acc": val_metrics["balanced_acc"],
+                    "val_f1": val_metrics["f1"],
+                    "val_tp": val_metrics["tp"],
+                    "val_tn": val_metrics["tn"],
+                    "val_fp": val_metrics["fp"],
+                    "val_fn": val_metrics["fn"],
+                }
+            )
+        history_rows.append(row)
 
-        save_train_history_csv(losses=train_loss_history, save_path=save_dir / "train_history.csv")
-        save_loss_curve(losses=train_loss_history, save_path=save_dir / "train_loss_curve.png", title="Finetune Train Loss")
-        if len(val_loss_history) > 0:
-            save_loss_curve(losses=val_loss_history, save_path=save_dir / "val_loss_curve.png", title="Finetune Val Loss")
+        save_metrics_history_csv(rows=history_rows, save_path=save_dir / "train_history.csv")
+        save_loss_curve(losses=[r["train_loss"] for r in history_rows], save_path=save_dir / "train_loss_curve.png", title="Finetune Train Loss")
+        val_losses = [r["val_loss"] for r in history_rows if "val_loss" in r]
+        if val_losses:
+            save_loss_curve(losses=val_losses, save_path=save_dir / "val_loss_curve.png", title="Finetune Val Loss")
 
-        current_metric = val_metrics["acc"] if val_metrics is not None else -train_metrics["loss"]
+        current_metrics = val_metrics if val_metrics is not None else train_metrics
+        current_metric = monitor_value(current_metrics, monitor_name)
         save_checkpoint(save_dir / "last.pt", model, optimizer, epoch, best_metric, center_c, cfg)
-        if current_metric > best_metric:
+        if is_improved(current_metric, best_metric, monitor_mode, min_delta=early_stopping_min_delta):
             best_metric = current_metric
             best_epoch = epoch
+            epochs_without_improvement = 0
             save_checkpoint(save_dir / "best.pt", model, optimizer, epoch, best_metric, center_c, cfg)
-
-        elapsed = time.time() - epoch_start
-        if val_metrics is not None:
-            print(f"[Epoch {epoch:03d}/{epochs:03d}] train_loss={train_metrics['loss']:.6f} | val_loss={val_metrics['loss']:.6f} | val_acc={val_metrics['acc']:.4f} | best_metric={best_metric:.4f} (epoch {best_epoch}) | time={elapsed:.1f}s")
         else:
-            print(f"[Epoch {epoch:03d}/{epochs:03d}] train_loss={train_metrics['loss']:.6f} | best_metric={best_metric:.4f} (epoch {best_epoch}) | time={elapsed:.1f}s")
+            epochs_without_improvement += 1
+
+        if val_metrics is not None:
+            print(
+                f"[Epoch {epoch:03d}/{epochs:03d}] "
+                f"train_loss={train_metrics['loss']:.6f} | "
+                f"val_loss={val_metrics['loss']:.6f} | "
+                f"val_acc={val_metrics['acc']:.4f} | "
+                f"val_f1={val_metrics['f1']:.4f} | "
+                f"best_{monitor_name}={best_metric:.4f} (epoch {best_epoch}) | "
+                f"time={elapsed:.1f}s"
+            )
+        else:
+            print(
+                f"[Epoch {epoch:03d}/{epochs:03d}] "
+                f"train_loss={train_metrics['loss']:.6f} | "
+                f"best_{monitor_name}={best_metric:.4f} (epoch {best_epoch}) | "
+                f"time={elapsed:.1f}s"
+            )
+
+        if (
+            early_stopping_patience is not None
+            and epoch >= early_stopping_warmup_epochs
+            and epochs_without_improvement >= early_stopping_patience
+        ):
+            stopped_early = True
+            stop_reason = (
+                f"no {monitor_name} improvement for {epochs_without_improvement} epochs "
+                f"(patience={early_stopping_patience}, min_delta={early_stopping_min_delta})"
+            )
+            print(f"[EARLY_STOP] epoch={epoch} | best_epoch={best_epoch} | {stop_reason}")
+            break
 
     total_elapsed = time.time() - start_time
+    summary = {
+        "task": "finetune",
+        "experiment": finetune_experiment,
+        "base_experiment": base_experiment,
+        "save_dir": str(save_dir),
+        "monitor": monitor_name,
+        "monitor_mode": monitor_mode,
+        "best_metric": float(best_metric),
+        "best_epoch": int(best_epoch),
+        "epochs": int(epochs),
+        "completed_epochs": int(history_rows[-1]["epoch"]) if history_rows else 0,
+        "stopped_early": bool(stopped_early),
+        "stop_reason": stop_reason,
+        "early_stopping_patience": early_stopping_patience,
+        "early_stopping_min_delta": float(early_stopping_min_delta),
+        "early_stopping_warmup_epochs": int(early_stopping_warmup_epochs),
+        "cls_loss_weight": float(cls_loss_weight),
+        "anomaly_loss_weight": float(anomaly_loss_weight),
+        "classwise_loss_weights": classwise_weights,
+        "center_update": center_update,
+        "log_center_diagnostics": bool(log_center_diagnostics),
+        "log_wasserstein_diagnostics": bool(log_wasserstein_diagnostics),
+        "total_elapsed_sec": float(total_elapsed),
+        "last_train_metrics": train_metrics,
+        "last_val_metrics": val_metrics,
+    }
+    with open(save_dir / "finetune_summary.json", "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2, ensure_ascii=False)
     print(f"[DONE] finetune finished in {total_elapsed / 60.0:.2f} min")
     print(f"[DONE] best metric = {best_metric:.6f} at epoch {best_epoch}")
 

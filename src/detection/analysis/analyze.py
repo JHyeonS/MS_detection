@@ -12,7 +12,6 @@ from typing import Any, Dict, Optional, Tuple, List
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import yaml
 
 from sklearn.metrics import (
     accuracy_score,
@@ -26,67 +25,7 @@ from sklearn.metrics import (
     auc,
 )
 from sklearn.manifold import TSNE
-
-
-# =========================================================
-# config utils
-# =========================================================
-class AttrDict(dict):
-    def __getattr__(self, item):
-        v = self.get(item)
-        if isinstance(v, dict) and not isinstance(v, AttrDict):
-            v = AttrDict(v)
-            self[item] = v
-        return v
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-
-def _to_attrdict(obj):
-    if isinstance(obj, dict):
-        return AttrDict({k: _to_attrdict(v) for k, v in obj.items()})
-    if isinstance(obj, list):
-        return [_to_attrdict(v) for v in obj]
-    return obj
-
-
-def _load_yaml(path: str | Path) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def _deep_update(base: dict, override: dict) -> dict:
-    out = dict(base)
-    for k, v in override.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_update(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
-def load_config(base_cfg_path: str | Path, stage_cfg_path: str | Path):
-    base_cfg = _load_yaml(base_cfg_path)
-    stage_cfg = _load_yaml(stage_cfg_path)
-    merged = _deep_update(base_cfg, stage_cfg)
-    return _to_attrdict(merged)
-
-
-def cfg_get(cfg: Any, *keys: str, default=None):
-    cur = cfg
-    for key in keys:
-        if cur is None:
-            return default
-        if isinstance(cur, dict):
-            if key not in cur:
-                return default
-            cur = cur[key]
-        else:
-            if not hasattr(cur, key):
-                return default
-            cur = getattr(cur, key)
-    return cur
+from src.detection.utils.config_io import cfg_get, load_config
 
 
 # =========================================================

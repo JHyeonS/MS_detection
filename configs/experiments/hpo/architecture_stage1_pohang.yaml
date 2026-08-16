@@ -1,0 +1,33 @@
+hpo_arch:
+  name: "architecture_stage1_pohang"
+  base_cfg: "configs/train/base_pohang.yaml"
+  pretrain_stage_cfg: "configs/train/pretrain_reconst.yaml"
+  finetune_stage_cfg: "configs/train/train.yaml"
+  output_root: "./runs/hpo/architecture_stage1_pohang"
+  metric: "val_f1"
+  mode: "max"
+  seed: 42
+  max_trials: 12
+
+  pretrain_overrides:
+    pretrain:
+      batch_size: 8
+      epochs: 150
+      use_amp: true
+
+  finetune_overrides:
+    train:
+      monitor: "f1"
+      monitor_mode: "max"
+      use_pretrained_encoder: true
+      center_mode: "target_noise"
+      cls_loss_weight: 1.0
+      use_amp: true
+
+  search_space:
+    model:
+      encoder:
+        num_layers: [4, 6, 8]
+        base_channels: [16, 32]
+        latent_dim: [256, 512]
+        dropout: [0.0, 0.1, 0.2, 0.3]

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def _get_attr(obj, key, default=None):
@@ -78,6 +79,8 @@ def _make_act(act_type: str) -> nn.Module:
 
     if act_type == "relu":
         return nn.ReLU(inplace=True)
+    elif act_type in {"silu", "swish"}:
+        return nn.SiLU(inplace=True)
     elif act_type == "gelu":
         return nn.GELU()
     elif act_type == "leaky_relu":
@@ -124,6 +127,63 @@ class ConvBlock(nn.Module):
         return self.block(x)
 
 
+class GeneralizedMeanPooling(nn.Module):
+    """
+    Sign-preserving generalized mean pooling.
+
+    Standard GeM assumes non-negative features. Here the final 1x1 projection can
+    produce signed activations, so the pooled signed moment is converted back with
+    a sign-preserving root to avoid NaNs from fractional powers of negatives.
+    """
+
+    def __init__(
+        self,
+        num_channels=None,
+        p=3.0,
+        eps=1e-6,
+        p_min=1.0,
+        p_max=10.0,
+        output_size=(1, 1),
+    ):
+        super().__init__()
+        if num_channels is not None:
+            self.p = nn.Parameter(float(p) * torch.ones(int(num_channels)))
+        else:
+            self.p = nn.Parameter(float(p) * torch.ones(1))
+        self.eps = float(eps)
+        self.p_min = float(p_min)
+        self.p_max = float(p_max)
+        self.output_size = output_size
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        p = self.p.clamp(self.p_min, self.p_max)
+        if p.dim() == 1:
+            p = p.view(1, -1, 1, 1)
+
+        x_abs = x.abs().clamp(min=self.eps, max=1e4)
+        signed_power = x.sign() * x_abs.pow(p)
+        pooled = F.adaptive_avg_pool2d(signed_power, output_size=self.output_size)
+        pooled_abs = pooled.abs().clamp(min=self.eps, max=1e12)
+        return pooled.sign() * pooled_abs.pow(1.0 / p)
+
+
+def _make_pooling(pool_type: str, latent_dim: int, enc_cfg) -> nn.Module:
+    pool_type = str(pool_type or "avg").lower()
+    if pool_type in {"avg", "average", "gap", "adaptive_avg"}:
+        return nn.AdaptiveAvgPool2d((1, 1))
+    if pool_type in {"gem", "signed_gem", "generalized_mean"}:
+        channelwise = bool(_get_attr(enc_cfg, "pooling_channelwise", True))
+        return GeneralizedMeanPooling(
+            num_channels=latent_dim if channelwise else None,
+            p=float(_get_attr(enc_cfg, "pooling_p", 3.0)),
+            eps=float(_get_attr(enc_cfg, "pooling_eps", 1e-6)),
+            p_min=float(_get_attr(enc_cfg, "pooling_p_min", 1.0)),
+            p_max=float(_get_attr(enc_cfg, "pooling_p_max", 10.0)),
+            output_size=(1, 1),
+        )
+    raise ValueError(f"Unsupported pooling type: {pool_type}")
+
+
 class CNNEncoder(nn.Module):
     """
     Auto-generated CNN encoder for DAS microseismic input.
@@ -148,6 +208,8 @@ class CNNEncoder(nn.Module):
         norm: "bn"
         act: "relu"
         dropout: 0.0    # fallback only
+        pooling: "avg"  # "avg" or "gem"
+        pooling_p: 3.0
 
     pretrain.yaml
     -------------
@@ -173,6 +235,7 @@ class CNNEncoder(nn.Module):
         self.latent_dim = int(_get_attr(enc_cfg, "latent_dim", 128))
         self.norm = _get_attr(enc_cfg, "norm", "bn")
         self.act = _get_attr(enc_cfg, "act", "relu")
+        self.pooling = _get_attr(enc_cfg, "pooling", "avg")
         self.dropout = _resolve_encoder_dropout(cfg, default=0.0)
 
         if self.num_layers < 1:
@@ -220,7 +283,7 @@ class CNNEncoder(nn.Module):
             bias=True,
         )
 
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.global_pool = _make_pooling(self.pooling, self.latent_dim, enc_cfg)
 
         self._init_weights()
 
@@ -292,6 +355,7 @@ if __name__ == "__main__":
         norm = "bn"
         act = "relu"
         dropout = 0.0
+        pooling = "avg"
 
     class DummyModelCfg:
         encoder = DummyEncoderCfg()

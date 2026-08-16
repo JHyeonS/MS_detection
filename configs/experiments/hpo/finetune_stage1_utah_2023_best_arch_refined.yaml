@@ -1,0 +1,38 @@
+hpo:
+  name: "finetune_stage1_utah_2023_best_arch_refined"
+  base_cfg: "configs/train/base_utah_2023_arch_best.yaml"
+  stage_cfg: "configs/train/train.yaml"
+  output_root: "./runs/hpo/finetune_stage1_utah_2023_best_arch_refined"
+  metric: "val_f1"
+  mode: "max"
+  seed: 42
+  max_trials: 18
+
+  pretrain:
+    enabled: true
+    stage_cfg: "configs/train/pretrain_reconst.yaml"
+    overrides:
+      pretrain:
+        batch_size: 8
+        epochs: 150
+        use_amp: true
+
+  fixed_overrides:
+    paths:
+      run_root: "./runs/hpo/finetune_stage1_utah_2023_best_arch_refined"
+    train:
+      monitor: "f1"
+      monitor_mode: "max"
+      optimizer: "adamw"
+      use_pretrained_encoder: true
+      center_mode: "target_noise"
+      cls_loss_weight: 1.0
+      use_amp: true
+      freeze_encoder: false
+
+  search_space:
+    train:
+      lr: [0.0003, 0.001]
+      weight_decay: [0.0001, 0.001, 0.01]
+      batch_size: [8, 16, 32]
+      anomaly_loss_weight: [0.01, 0.05, 0.1, 0.3]

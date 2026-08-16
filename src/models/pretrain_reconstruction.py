@@ -83,6 +83,8 @@ def _make_act(act_type: str) -> nn.Module:
 
     if act_type == "relu":
         return nn.ReLU(inplace=True)
+    elif act_type in {"silu", "swish"}:
+        return nn.SiLU(inplace=True)
     elif act_type == "gelu":
         return nn.GELU()
     elif act_type == "leaky_relu":

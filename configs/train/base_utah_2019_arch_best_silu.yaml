@@ -1,0 +1,41 @@
+seed: 42
+
+device:
+  type: "cuda"
+  ids: [0]
+
+paths:
+  run_root: "./runs/final_silu/utah_2019_best"
+
+data:
+  experiment: "base_utah_2019"
+  split_dir: "./data/0406/metadata/experiments/stage1_utah_2019_only"
+  num_workers: 1
+  pin_memory: true
+  normalize: "robust"
+
+  preprocess:
+    detrend: true
+    bandpass: true
+    bandpass_low: 3
+    bandpass_high: 50
+    bandpass_order: 4
+    agc: false
+    agc_window_sec: 0.2
+    agc_target_rms: 1.0
+    agc_clip: 10.0
+    sampling_rate: 2000
+
+model:
+  encoder:
+    in_channels: 1
+    num_layers: 6
+    base_channels: 16
+    latent_dim: 512
+    norm: "bn"
+    act: "silu"
+    dropout: 0.1
+
+  cae:
+    mirror_decoder: true
+    final_act: "identity"

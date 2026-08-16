@@ -15,30 +15,20 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import yaml
 
 from src.models.pretrain_reconstruction import CAE
 from src.models.pretrain_contrastive import ContrastivePretrainModel
 from src.detection.utils.device import setup_device_from_cfg
+from src.detection.utils.process_title import set_process_title
 from src.detection.utils.visualize import save_loss_curve, save_train_history_csv
 from src.detection.utils.config_io import (
+    cfg_get,
     save_merged_config,
     copy_config_snapshots,
     save_run_metadata,
+    ensure_dir,
+    load_config,
 )
-
-
-class AttrDict(dict):
-    def __getattr__(self, item):
-        v = self.get(item)
-        if isinstance(v, dict) and not isinstance(v, AttrDict):
-            v = AttrDict(v)
-            self[item] = v
-        return v
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
 
 def _to_plain_dict(obj):
     if isinstance(obj, dict):
@@ -46,55 +36,6 @@ def _to_plain_dict(obj):
     if isinstance(obj, list):
         return [_to_plain_dict(v) for v in obj]
     return obj
-
-def _to_attrdict(obj):
-    if isinstance(obj, dict):
-        return AttrDict({k: _to_attrdict(v) for k, v in obj.items()})
-    if isinstance(obj, list):
-        return [_to_attrdict(v) for v in obj]
-    return obj
-
-
-def _load_yaml(path: str | Path) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def _deep_update(base: dict, override: dict) -> dict:
-    out = dict(base)
-    for k, v in override.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_update(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
-def load_config(base_cfg_path: str | Path, stage_cfg_path: str | Path):
-    base_cfg = _load_yaml(base_cfg_path)
-    stage_cfg = _load_yaml(stage_cfg_path)
-    merged = _deep_update(base_cfg, stage_cfg)
-    return _to_attrdict(merged)
-
-
-def cfg_get(cfg: Any, *keys: str, default=None):
-    cur = cfg
-    for key in keys:
-        if cur is None:
-            return default
-        if isinstance(cur, dict):
-            if key not in cur:
-                return default
-            cur = cur[key]
-        else:
-            if not hasattr(cur, key):
-                return default
-            cur = getattr(cur, key)
-    return cur
-
-
-def ensure_dir(path: str | Path):
-    Path(path).mkdir(parents=True, exist_ok=True)
 
 
 def set_seed(seed: int = 42):
@@ -351,6 +292,8 @@ def main():
         save_dir,
     )
 
+    process_title = set_process_title("pretrain")
+    print(f"[INFO] process_title: {process_title}")
     device = setup_device_from_cfg(cfg)
     print(f"[INFO] device: {device}")
     print(f"[INFO] pretrain mode: {mode}")

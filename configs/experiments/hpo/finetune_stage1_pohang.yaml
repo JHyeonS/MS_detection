@@ -1,0 +1,39 @@
+hpo:
+  name: "finetune_stage1_pohang"
+  base_cfg: "configs/train/base_pohang.yaml"
+  stage_cfg: "configs/train/train.yaml"
+  output_root: "./runs/hpo/finetune_stage1_pohang"
+  metric: "val_f1"
+  mode: "max"
+  seed: 42
+  max_trials: 24
+
+  pretrain:
+    enabled: true
+    stage_cfg: "configs/train/pretrain_reconst.yaml"
+    overrides:
+      pretrain:
+        epochs: 150
+
+  fixed_overrides:
+    paths:
+      run_root: "./runs/hpo/finetune_stage1_pohang"
+    train:
+      monitor: "f1"
+      monitor_mode: "max"
+      optimizer: "adamw"
+      use_pretrained_encoder: true
+      center_mode: "target_noise"
+      cls_loss_weight: 1.0
+      use_amp: true
+
+  search_space:
+    train:
+      lr: [0.0001, 0.0003, 0.001]
+      weight_decay: [0.0001, 0.001, 0.01]
+      batch_size: [8, 16, 32]
+      anomaly_loss_weight: [0.01, 0.05, 0.1, 0.3, 1.0]
+      freeze_encoder: [true, false]
+    model:
+      encoder:
+        dropout: [0.0, 0.1, 0.2, 0.3]

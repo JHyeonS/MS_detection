@@ -16,7 +16,7 @@ data:
   allowed_labels: [0, 1, 2]
   add_channel_dim: true
   normalize: "robust"
-  num_workers: 4
+  num_workers: 1
   pin_memory: true
 
   pad_value: 0.0

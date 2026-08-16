@@ -1,0 +1,51 @@
+data:
+  train_csv: train.csv
+  val_csv: val.csv
+  test_csv: test.csv
+  normalize: robust
+  add_channel_dim: true
+  return_meta: false
+  num_workers: 1
+  pin_memory: true
+
+train:
+  batch_size: 8
+  eval_batch_size: 16
+  drop_last: true
+  freeze_encoder: false
+  seed: 42
+  use_labeled_fraction: false
+  labeled_fraction: 1.0
+  balance_fraction_by_class: true
+  min_samples_per_class: 1
+  fraction_seed: null
+  weighted_sampling: false
+
+  label_map:
+    0: 0
+    1: 1
+
+  epochs: 150
+  lr: 0.001
+  weight_decay: 0.0001
+  optimizer: adamw
+  use_amp: true
+  grad_clip: 1.0
+
+  cls_loss_weight: 1.0
+  anomaly_loss_weight: 0.01
+  lambda_anomaly: 0.1
+  eta: 1.0
+  monitor: f1
+  monitor_mode: max
+  early_stopping_patience: 20
+  early_stopping_min_delta: 0.0
+  early_stopping_warmup_epochs: 0
+
+  pretrained_checkpoint: null
+  use_pretrained_encoder: true
+  pretrained_encoder_path: null
+  center_mode: target_noise
+
+paths:
+  run_root: "./runs/final/utah_2019_best"

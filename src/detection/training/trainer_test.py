@@ -12,79 +12,18 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import yaml
 
 from src.models.cnn_encoder import cnn_encoder
 from src.detection.utils.config_io import (
+    cfg_get,
     ensure_dir,
     save_merged_config,
     copy_config_snapshots,
     save_run_metadata,
+    load_config,
 )
 from src.detection.utils.device import setup_device_from_cfg
-
-
-# =========================================================
-# config utils
-# =========================================================
-class AttrDict(dict):
-    def __getattr__(self, item):
-        if item not in self:
-            raise AttributeError(item)
-        v = self.get(item)
-        if isinstance(v, dict) and not isinstance(v, AttrDict):
-            v = AttrDict(v)
-            self[item] = v
-        return v
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-
-def _to_attrdict(obj):
-    if isinstance(obj, dict):
-        return AttrDict({k: _to_attrdict(v) for k, v in obj.items()})
-    if isinstance(obj, list):
-        return [_to_attrdict(v) for v in obj]
-    return obj
-
-
-def _load_yaml(path: str | Path) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def _deep_update(base: dict, override: dict) -> dict:
-    out = dict(base)
-    for k, v in override.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_update(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
-def load_config(base_cfg_path: str | Path, stage_cfg_path: str | Path):
-    base_cfg = _load_yaml(base_cfg_path)
-    stage_cfg = _load_yaml(stage_cfg_path)
-    merged = _deep_update(base_cfg, stage_cfg)
-    return _to_attrdict(merged)
-
-
-def cfg_get(cfg: Any, *keys: str, default=None):
-    cur = cfg
-    for key in keys:
-        if cur is None:
-            return default
-        if isinstance(cur, dict):
-            if key not in cur:
-                return default
-            cur = cur[key]
-        else:
-            if not hasattr(cur, key):
-                return default
-            cur = getattr(cur, key)
-    return cur
+from src.detection.utils.process_title import set_process_title
 
 
 # =========================================================
@@ -182,12 +121,16 @@ def compute_metrics(y_true, y_pred):
     acc = (tp + tn) / max(len(y_true), 1)
     precision = tp / max(tp + fp, 1)
     recall = tp / max(tp + fn, 1)
+    specificity = tn / max(tn + fp, 1)
+    balanced_acc = 0.5 * (recall + specificity)
     f1 = 2 * precision * recall / max(precision + recall, 1e-12)
 
     return {
         "acc": float(acc),
         "precision": float(precision),
         "recall": float(recall),
+        "specificity": float(specificity),
+        "balanced_acc": float(balanced_acc),
         "f1": float(f1),
         "tp": tp,
         "tn": tn,
@@ -237,16 +180,17 @@ def collect_predictions(model, loader, device, center_c):
     return pd.DataFrame(rows)
 
 
-def sweep_threshold_by_f1(pred_df: pd.DataFrame, score_col: str):
+def sweep_threshold(pred_df: pd.DataFrame, score_col: str, metric_name: str = "f1"):
     if pred_df.empty:
         raise ValueError("Prediction dataframe is empty.")
+    metric_name = str(metric_name or "f1").lower()
 
     y_true = pred_df["label"].to_numpy().astype(int)
     scores = pred_df[score_col].to_numpy().astype(float)
 
     thresholds = np.unique(scores)
     best = None
-    best_f1 = -1.0
+    best_value = -1.0
 
     for th in thresholds:
         y_pred = (scores >= th).astype(int)
@@ -254,13 +198,19 @@ def sweep_threshold_by_f1(pred_df: pd.DataFrame, score_col: str):
         metrics["threshold"] = float(th)
         metrics["score_col"] = score_col
 
-        if metrics["f1"] > best_f1:
-            best_f1 = metrics["f1"]
+        if metric_name not in metrics:
+            raise ValueError(
+                f"Unsupported threshold metric '{metric_name}'. "
+                f"Available keys: {sorted(metrics.keys())}"
+            )
+        if metrics[metric_name] > best_value:
+            best_value = metrics[metric_name]
             best = metrics
 
     if best is None:
         raise RuntimeError(f"Failed to sweep thresholds for score_col={score_col}")
 
+    best["threshold_metric"] = metric_name
     return best
 
 
@@ -311,6 +261,8 @@ def main():
     )
     save_run_metadata({"task": "test", "experiment": experiment}, save_dir)
 
+    process_title = set_process_title("test")
+    print(f"[INFO] process_title: {process_title}")
     device = setup_device_from_cfg(cfg)
     print(f"[INFO] device: {device}")
     print(f"[INFO] save_dir: {save_dir}")
@@ -337,6 +289,8 @@ def main():
         "anomaly": None,
         "fc": None,
     }
+    threshold_metric = str(cfg_get(cfg, "test", "threshold_metric", default="f1")).lower()
+    print(f"[INFO] threshold_metric: {threshold_metric}")
 
     # -------------------------------------------------
     # 1) Validation threshold tuning for BOTH branches
@@ -350,17 +304,21 @@ def main():
             "score_col": "anomaly_score",
             "score_min": float(val_pred_df["anomaly_score"].min()),
             "score_max": float(val_pred_df["anomaly_score"].max()),
-            "best_threshold_by_f1": sweep_threshold_by_f1(val_pred_df, score_col="anomaly_score"),
+            "best_threshold": sweep_threshold(
+                val_pred_df, score_col="anomaly_score", metric_name=threshold_metric
+            ),
         }
         val_threshold_summary["fc"] = {
             "score_col": "fc_prob",
             "score_min": float(val_pred_df["fc_prob"].min()),
             "score_max": float(val_pred_df["fc_prob"].max()),
-            "best_threshold_by_f1": sweep_threshold_by_f1(val_pred_df, score_col="fc_prob"),
+            "best_threshold": sweep_threshold(
+                val_pred_df, score_col="fc_prob", metric_name=threshold_metric
+            ),
         }
 
-        anomaly_threshold = float(val_threshold_summary["anomaly"]["best_threshold_by_f1"]["threshold"])
-        fc_threshold = float(val_threshold_summary["fc"]["best_threshold_by_f1"]["threshold"])
+        anomaly_threshold = float(val_threshold_summary["anomaly"]["best_threshold"]["threshold"])
+        fc_threshold = float(val_threshold_summary["fc"]["best_threshold"]["threshold"])
 
         val_summary_path = save_dir / "val_threshold_summary.json"
         with open(val_summary_path, "w", encoding="utf-8") as f:
@@ -410,6 +368,7 @@ def main():
         "thresholds": {
             "anomaly_score": float(anomaly_threshold),
             "fc_prob": float(fc_threshold),
+            "threshold_metric": threshold_metric,
         },
         "anomaly_metrics_fixed_threshold": anomaly_metrics,
         "fc_metrics_fixed_threshold": fc_metrics,
